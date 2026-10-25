@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RoVA Deck Builder</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
-<header class="topbar">
+<header class="topbar three">
   <div class="brand">
     <span class="brand-mark" aria-hidden="true"></span>
     <div>
@@ -23,8 +23,6 @@
   <div class="top-actions">
     <a class="btn-link" href="sim.html">Playtest</a>
     <button id="btn-theme" class="ghost" aria-label="Theme: auto" title="Theme: auto">Auto</button>
-    <button id="btn-import-open">Import</button>
-    <button id="btn-export" class="primary">Export</button>
   </div>
 </header>
 
@@ -32,6 +30,8 @@
   <div class="deckbar">
     <label for="deck-name">Deck name</label>
     <input id="deck-name" type="text" placeholder="Untitled deck" maxlength="60">
+    <button id="btn-import-open">Import</button>
+    <button id="btn-export" class="primary">Export</button>
   </div>
   <!-- LEFT: chosen list -->
   <section class="panel chosen" aria-labelledby="chosen-title">

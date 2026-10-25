@@ -26,7 +26,7 @@ A deck has two parts, and the builder has a mode for each:
 - **Summons:** the Arcana deck (summon cards and Fragments)
 - **Tokens:** the Void Token stack (normal and special tokens)
 
-Use the **Summons / Tokens** switch at the top to change mode. Switching modes never deletes anything; each mode keeps its own list.
+Use the **Summons / Tokens** switch in the middle of the top bar to change mode. Switching modes never deletes anything; each mode keeps its own list.
 
 ### Adding and removing cards
 
@@ -51,9 +51,9 @@ Use the **Summons / Tokens** switch at the top to change mode. Switching modes n
 
 ### Deck name, clearing, theme
 
-- Type a **deck name** in the box under the top bar, above the card lists. It's included when you export.
+- Type a **deck name** in the box under the top bar, above the card lists. It's included when you export. **Import** and **Export** sit right next to it.
 - **Clear** empties the list for the current mode only. Click it once and it asks "Confirm?"; click again within 3 seconds to confirm.
-- The **Auto / Dark / Light** button changes the colour theme. Auto follows your device's setting.
+- The **Auto / Dark / Light** button (top right, next to **Playtest**) changes the colour theme. Auto follows your device's setting.
 - Your deck, its name and your theme are saved in this browser, so they're still there next time. They don't carry over to another browser or device. To move a deck, export it and import it there.
 
 ### Export
