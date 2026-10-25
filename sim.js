@@ -90,7 +90,7 @@
   function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
   function newGame(decks, names) {
-    const S = { started: true, phase: "setup", turn: 0, turnNo: 0, first: 0, field: "Radiant", fra: null, altarUsed: [false, false],
+    const S = { started: true, phase: "setup", turn: 0, turnNo: 0, first: 0, field: null, alert: null, aseq: 0, fra: null, altarUsed: [false, false],
       activeAbyss: null, objects: {}, players: [], log: [], chat: [], seq: 0, cseq: 0, over: false };
     let n = 0;
     const mk = (kind, ref, owner) => { const iid = `o${++n}`; S.objects[iid] = { iid, kind, ref, owner, rested: false, dmg: 0, charge: 0, down: false }; return iid; };
@@ -99,9 +99,9 @@
       S.players.push({ name: names[p] || `Player ${p + 1}`, deck: cards.slice(), order: { cards, tokens },
         hand: [], arena: Object.fromEntries(SLOTS.map((s) => [s, null])), abyss: [],
         stack: tokens.slice(), altar: [[], [], []], stash: [],
-        pendingGen: 0, handRevealed: false, peek: null, setupDone: false, ready: false });
+        pendingGen: 0, handRevealed: false, peek: null, setupDone: false, ready: false, vote: null });
     }
-    log(S, "sys", "Table opened. Nothing is shuffled or drawn yet. Each player: press Setup, then Ready.");
+    log(S, "sys", "Table opened. Nothing is shuffled or drawn yet. Each player: press Setup, vote for the Arcana Field state, then press Ready.");
     return S;
   }
 
@@ -124,19 +124,38 @@
     for (const Q of S.players) if (Q.peek && Q.peek.owner === p) Q.peek = null;
     Object.assign(P, { deck: P.order.cards.slice(), stack: P.order.tokens.slice(), hand: [], abyss: [], stash: [],
       arena: Object.fromEntries(SLOTS.map((s) => [s, null])), altar: [[], [], []],
-      pendingGen: 0, handRevealed: false, setupDone: false, ready: false });
+      pendingGen: 0, handRevealed: false, setupDone: false, ready: false, vote: null });
     log(S, "sys", `${pn(S, p)} resets their side: all cards back in the deck and all tokens back in the stack.`);
     if (S.phase === "play") {
       S.phase = "setup"; S.over = false; S.turnNo = 0; S.altarUsed = [false, false];
-      for (const Q of S.players) Q.ready = false;
-      log(S, "sys", "The game is back at setup. It begins again when both players are Ready.");
+      S.field = null;
+      for (const Q of S.players) { Q.ready = false; Q.vote = null; }
+      log(S, "sys", "The game is back at setup. Both players vote on the Arcana Field again, and the game begins when both are Ready.");
     }
   }
+  function castVote(S, p, choice) {
+    const P = S.players[p];
+    if (S.phase !== "setup" || P.ready || !["Radiant", "Dormant"].includes(choice)) return;
+    P.vote = choice;
+    log(S, "", `${pn(S, p)} has voted on the Arcana Field.`);     // the choice stays secret until the tally
+  }
   function toggleReady(S, p) {
-    const P = S.players[p]; if (!P.setupDone || S.phase !== "setup") return;
+    const P = S.players[p]; if (!P.setupDone || !P.vote || S.phase !== "setup") return;
     P.ready = !P.ready;
     log(S, "", `${pn(S, p)} is ${P.ready ? "ready" : "no longer ready"}.`);
-    if (S.players.every((Q) => Q.ready)) beginGame(S);
+    if (!S.players.every((Q) => Q.ready)) return;
+    // tally the Arcana Field vote
+    const [a, b] = S.players.map((Q) => Q.vote);
+    if (a !== b) {
+      for (const Q of S.players) Q.ready = false;
+      const text = `The Arcana Field votes don't match: ${pn(S, 0)} voted ${a}, ${pn(S, 1)} voted ${b}. Agree on one, vote again, and press Ready.`;
+      S.alert = { n: ++S.aseq, text };
+      log(S, "sys", text);
+      return;
+    }
+    S.field = a;
+    log(S, "sys", `Arcana Field vote: both voted ${a}. The field is ${a} and is locked for this game.`);
+    beginGame(S);
   }
   // Both ready: compare setup tokens to pick the first player, then start turn 1
   function beginGame(S) {
@@ -239,17 +258,17 @@
     const own = (iid) => { const o = S.objects[iid]; return o && o.owner === me; };
     const L = a.iid ? locate(S, a.iid) : null;
     const side = solo && (a.player === 0 || a.player === 1) ? a.player : me;   // solo may act for either side
-    if (S.phase === "setup" && !["say", "setup", "ready", "reset", "coin", "field"].includes(a.type)) return;
+    if (S.phase === "setup" && !["say", "setup", "ready", "reset", "coin", "vote"].includes(a.type)) return;
     switch (a.type) {
       case "setup": if (S.phase === "setup") setupSide(S, side); break;
       case "ready": toggleReady(S, side); break;
+      case "vote": castVote(S, side, a.choice); break;
       case "reset": resetSide(S, side); break;
       case "say": if (a.text) { S.chat.push({ who: me, name: pn(S, me), text: String(a.text).slice(0, 300), n: ++S.cseq, at: Date.now() }); if (S.chat.length > 300) S.chat.splice(0, S.chat.length - 300); } break;
       case "draw": drawCards(S, me, Math.max(1, Math.min(5, a.n | 0))); break;
       case "shuffle": shuffle(P.deck); log(S, "", `${pn(S, me)} shuffles their deck.`); break;
       case "standAll": for (const s of SLOTS) if (P.arena[s]) S.objects[P.arena[s]].rested = false; log(S, "", `${pn(S, me)} stands all their summons.`); break;
       case "revealHand": P.handRevealed = !P.handRevealed; log(S, "", `${pn(S, me)} ${P.handRevealed ? "reveals" : "hides"} their hand.`); break;
-      case "field": S.field = S.field === "Radiant" ? "Dormant" : "Radiant"; log(S, "sys", `${pn(S, me)} sets the Arcana Field to ${S.field}.`); break;
       case "coin": log(S, "sys", `${pn(S, me)} flips the marker coin: ${Math.random() < 0.5 ? "Radiant (heads)" : "Dormant (tails)"}.`); break;
 
       case "summon": {
@@ -371,7 +390,7 @@
       Q.deckCount = Q.deck.length; Q.deck = []; Q.order = null;
       Q.stackCount = Q.stack.length; Q.stack = [];
       Q.stashCount = Q.stash.length; Q.stash = Q.stash.length ? [Q.stash[Q.stash.length - 1]] : [];
-      if (q !== p && !all) Q.peek = null;
+      if (q !== p && !all) { Q.peek = null; if (Q.vote) Q.vote = "secret"; }
     }
     // keep only visible objects
     const vis = new Set();
@@ -560,6 +579,16 @@
     renderHands(V, me);
     renderLog(V);
     renderPeek(V, me);
+    renderAlert(V);
+  }
+
+  let lastAlert = 0;
+  function renderAlert(V) {
+    if (!V.alert || V.alert.n === lastAlert) return;
+    lastAlert = V.alert.n;
+    const box = $("#alert");
+    $("#alert-text").textContent = V.alert.text;
+    box.hidden = false; $("#alert-ok").focus();
   }
 
   function renderBanner(V, me) {
@@ -677,7 +706,11 @@
 
   // Reset needs a second click within 3 seconds
   const resetArm = {};
-  function sideStatus(P) { return !P.setupDone ? "Not set up" : P.ready ? "Ready" : "Set up · not ready"; }
+  function sideStatus(P) {
+    if (!P.setupDone) return P.vote ? "Voted · not set up" : "Not set up";
+    if (P.ready) return "Ready";
+    return P.vote ? "Voted · not ready" : "Set up · not voted";
+  }
   function sideBox(V, p, title) {
     const P = V.players[p], setup = V.phase === "setup";
     const extra = ctl.mode === "solo" ? { player: p } : {};
@@ -692,8 +725,14 @@
     if (setup) btns.append(
       el("button", { class: P.setupDone ? "" : "primary", text: P.setupDone ? "Set up ✓" : "Setup", disabled: P.setupDone ? "" : false,
         title: "Shuffle deck and token stack, draw 4, reveal 3 setup tokens", onclick: () => act({ type: "setup", ...extra }) }),
-      el("button", { class: P.setupDone && !P.ready ? "primary" : "", text: P.ready ? "Not ready" : "Ready", disabled: P.setupDone ? false : "",
-        onclick: () => act({ type: "ready", ...extra }) }));
+      el("button", { class: P.setupDone && P.vote && !P.ready ? "primary" : "", text: P.ready ? "Not ready" : "Ready", disabled: P.setupDone && P.vote ? false : "",
+        title: P.vote ? "" : "Vote on the Arcana Field first", onclick: () => act({ type: "ready", ...extra }) }));
+    if (setup) {
+      const vote = el("div", { class: "vote", role: "group", "aria-label": "Arcana Field vote" }, el("span", { class: "vlbl", text: "Field vote" }));
+      for (const ch of ["Radiant", "Dormant"]) vote.append(el("button", { class: P.vote === ch ? "chosen" : "", text: ch, "aria-pressed": String(P.vote === ch),
+        disabled: P.ready ? "" : false, title: P.ready ? "Press Not ready to change your vote" : `Vote ${ch}`, onclick: () => act({ type: "vote", choice: ch, ...extra }) }));
+      btns.append(vote);
+    }
     btns.append(reset);
     return el("section", { class: "cbox" }, el("h3", {}, document.createTextNode(title), el("span", { class: `status${P.ready ? " ok" : ""}`, text: setup ? sideStatus(P) : "" })), btns);
   }
@@ -704,9 +743,10 @@
     const myTurn = V.turn === me || solo;
     $("#turnbox").replaceChildren(
       el("div", { class: "who", text: setup ? "Setting up" : `${V.players[V.turn].name}'s turn` }),
-      el("div", { class: "sub2", text: setup ? "Both players: Setup, then Ready" : `Turn ${V.turnNo}${solo ? ` · acting as ${meP.name}` : (V.turn === me ? " · your turn" : "")}` }),
+      el("div", { class: "sub2", text: setup ? "Both players: Setup, vote, then Ready" : `Turn ${V.turnNo}${solo ? ` · acting as ${meP.name}` : (V.turn === me ? " · your turn" : "")}` }),
       el("div", { class: "cgrid" },
-        el("button", { class: "fieldtag wide", text: `Arcana Field: ${V.field}`, title: "Arcana Field state. Click to switch Radiant / Dormant", onclick: () => act({ type: "field" }) }),
+        el("div", { class: `fieldtag wide${V.field ? " locked" : ""}`, text: V.field ? `Arcana Field: ${V.field} 🔒` : "Arcana Field: by vote",
+          title: V.field ? "Decided by the vote before the game; locked for this game" : "Both players vote during setup" }),
         el("button", { class: "ghost wide", text: "Coin flip", onclick: () => act({ type: "coin" }) })));
     const box = $("#ctrlbox"); box.replaceChildren();
     if (!setup) box.append(el("section", { class: "cbox" }, el("h3", { text: "Turn" }), el("div", { class: "cgrid" },
@@ -715,7 +755,7 @@
       el("button", { text: "Stand all", onclick: () => act({ type: "standAll" }) }),
       el("button", { class: "wide", text: `Activate win (${meP.stashCount})`, disabled: V.altarUsed[me] ? "" : false, title: "Uses your Fragment Recall Altar use this turn", onclick: () => act({ type: "activateWin" }) }),
       el("button", { class: "wide", text: meP.handRevealed ? "Hide hand" : "Reveal hand", onclick: () => act({ type: "revealHand" }) }))));
-    if (setup) box.append(el("p", { class: "hint small", text: "Setup shuffles your deck and token stack, draws 4 and reveals 3 setup tokens. Turn 1 starts when both players are Ready." }));
+    if (setup) box.append(el("p", { class: "hint small", text: "Setup shuffles your deck and token stack, draws 4 and reveals 3 setup tokens. Vote Radiant or Dormant for the Arcana Field; your vote stays secret until both players are Ready. Matching votes start turn 1." }));
     box.append(sideBox(V, me, solo ? `${meP.name}'s side` : "Your side"));
     if (solo) box.append(sideBox(V, opp(me), `${O.name}'s side`));
     else box.append(el("p", { class: "hint small oppstat", text: `${O.name}: ${setup ? sideStatus(O) : "playing"}` }));
@@ -941,9 +981,10 @@
     $("#btn-join").addEventListener("click", join);
     $("#join-code").addEventListener("keydown", (e) => { if (e.key === "Enter") join(); });
     $("#btn-solo").addEventListener("click", solo);
+    $("#alert-ok").addEventListener("click", () => { $("#alert").hidden = true; });
     $("#say-form").addEventListener("submit", (e) => { e.preventDefault(); const t = $("#say").value.trim(); if (t) act({ type: "say", text: t }); $("#say").value = ""; });
     document.addEventListener("click", (e) => { if (!$("#menu").contains(e.target)) closeMenu(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeMenu(); if (ui.pick) { ui.pick = null; render(); } else if (overlayKind && overlayKind.t === "abyss") closeOverlay(); } });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#alert").hidden = true; closeMenu(); if (ui.pick) { ui.pick = null; render(); } else if (overlayKind && overlayKind.t === "abyss") closeOverlay(); } });
     $("#overlay").addEventListener("click", (e) => { if (e.target.id === "overlay" && overlayKind && overlayKind.t === "abyss") closeOverlay(); });
     window.addEventListener("resize", fitBoard);
     window.addEventListener("beforeunload", (e) => { if (ctl.S || ctl.V) { e.preventDefault(); e.returnValue = ""; } });

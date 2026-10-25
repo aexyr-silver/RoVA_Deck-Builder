@@ -6,7 +6,7 @@
 <title>RoVA Playtest</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="stylesheet" href="style.css?v=9">
-<link rel="stylesheet" href="sim.css?v=5">
+<link rel="stylesheet" href="sim.css?v=6">
 </head>
 <body class="sim">
 <header class="topbar">
@@ -92,9 +92,16 @@
 <div id="menu" class="menu" hidden></div>
 <div id="overlay" class="overlay" hidden><div class="overlay-box panel" id="overlay-box"></div></div>
 <div id="preview" class="preview" hidden><img id="preview-img" alt=""></div>
+<div id="alert" class="alert-wrap" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" hidden>
+  <div class="alert-box panel">
+    <h2 id="alert-title">Votes don't match</h2>
+    <p id="alert-text"></p>
+    <div class="dlg-actions"><button id="alert-ok" class="primary">OK</button></div>
+  </div>
+</div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/peerjs-1.5.5.min.js"></script>
-<script src="sim.js?v=6"></script>
+<script src="sim.js?v=7"></script>
 </body>
 </html>

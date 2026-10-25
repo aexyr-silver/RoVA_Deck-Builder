@@ -135,9 +135,15 @@ Choose a deck for the second player under **Second player's deck**, then click *
 The table opens empty: decks and token stacks are not shuffled, and no one has drawn. Each player, in the left column under **Your side**:
 
 1. Presses **Setup**. This shuffles your deck and your token stack, draws your 4 starting cards and reveals 3 setup tokens onto your Void Altar.
-2. Looks at their hand and tokens, then presses **Ready**. Press **Not ready** to take it back.
+2. Votes for the Arcana Field state: **Radiant** or **Dormant**. You can change your vote until you press Ready. Votes are secret: the other player only sees that you've voted.
+3. Looks at their hand and tokens, then presses **Ready**. Ready only works after you've set up and voted. Press **Not ready** to take it back; your vote can't be changed while you're ready.
 
-When **both** players are ready, the setup tokens are compared to decide who goes first, and turn 1 starts. If the setup tokens tie, both token stacks are shuffled and 3 tokens revealed again, as in the rules; this is shown in the log. The other player's status ("Not set up", "Set up · not ready", "Ready") is shown under your buttons.
+When **both** players are ready, the votes are counted:
+
+- **Votes don't match:** an error pops up for both players, showing who voted what. Both players are set back to not ready. Agree on one state, vote again and press Ready.
+- **Votes match:** the Arcana Field is set to that state and **locked for the whole game**. The setup tokens are compared to decide who goes first, and turn 1 starts. If the setup tokens tie, both token stacks are shuffled and 3 tokens revealed again, as in the rules; this is shown in the log.
+
+The other player's status (for example "Not set up", "Voted · not ready", "Ready") is shown under your buttons.
 
 Until the game begins, cards and piles can't be used; clicking them shows a reminder.
 
@@ -147,7 +153,7 @@ Until the game begins, cards and piles can't be used; clicking them shows a remi
 
 - Only you can reset your own side (in solo, you can reset either).
 - After a reset, press **Setup** and **Ready** again.
-- If you reset during a game, the game goes back to the setup stage. The other player's side is left as it is, but they need to press **Ready** again. Turn 1 starts over when both are ready.
+- If you reset during a game, the game goes back to the setup stage. The other player's side is left as it is, but both players need to vote on the Arcana Field again and press **Ready**. Turn 1 starts over when both are ready.
 - After a win, both players can reset to play again without going back to the lobby.
 
 ### The table
@@ -202,7 +208,7 @@ You can act on the other player's cards too, for example damaging their summon o
 
 At the top:
 
-- **Arcana Field: Radiant / Dormant:** click it to switch the field state.
+- **Arcana Field:** shows "by vote" during setup, then the voted state with a lock. It can't be changed once the game has begun.
 - **Coin flip:** the Radiant/Dormant marker coin, for effects that call for a flip.
 
 Under **Turn** (once the game has begun):
