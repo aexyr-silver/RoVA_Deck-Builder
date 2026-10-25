@@ -194,9 +194,15 @@
   const canHover = window.matchMedia("(hover: hover)").matches;
   function attachPreview(node, item) {
     if (!canHover) return;
-    node.addEventListener("mouseenter", () => { pimg.src = item.image; pimg.alt = item.name; preview.hidden = false; });
+    // special tokens preview their inscription card; everything else previews its own image
+    const src = item.inscription || item.image;
+    const wide = Boolean(item.inscription);
+    node.addEventListener("mouseenter", () => {
+      pimg.src = src; pimg.alt = wide ? `${item.name} inscription card` : item.name;
+      preview.classList.toggle("wide", wide); preview.hidden = false;
+    });
     node.addEventListener("mousemove", (e) => {
-      const w = 310, h = 440;
+      const w = wide ? 430 : 310, h = wide ? 215 : 440;
       let x = e.clientX + 18, y = e.clientY - h / 2;
       if (x + w > innerWidth) x = e.clientX - w - 18;
       y = Math.max(8, Math.min(y, innerHeight - h - 8));

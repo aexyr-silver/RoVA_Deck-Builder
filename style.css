@@ -112,6 +112,7 @@ input, select, textarea {
 /* preview */
 .preview { position: fixed; pointer-events: none; z-index: 20; filter: drop-shadow(0 8px 22px rgba(0,0,0,.45)); }
 .preview img { width: 300px; display: block; border-radius: 12px; }
+.preview.wide img { width: 420px; }
 
 /* dialog */
 dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 12px; width: min(680px, 94vw); padding: 0; }
