@@ -228,41 +228,68 @@
   function disarm() { const btn = $("#btn-clear"); btn.classList.remove("armed"); btn.textContent = "Clear"; }
 
   /* ---------- export / import ---------- */
+  function tokenLabel(t) {
+    return t.special ? `${t.name} Token v.${t.value}` : `Void Token v.${t.value}`;
+  }
+
   function listText() {
-    const lines = [];
-    const nm = state.name.trim() || "Untitled deck";
-    lines.push(`RoVA decklist — ${nm}`);
+    const lines = [`RoVA Decklist - ${state.name.trim() || "Untitled deck"}`, ""];
     const cards = Object.entries(state.summons).map(([id, n]) => [byId[id], n]);
-    lines.push("", `Summons (${total(state.summons)})`);
     for (const t of TYPE_ORDER) {
       const g = cards.filter(([c]) => c.cardType === t).sort(sortCards);
       if (!g.length) continue;
-      lines.push(`# ${t}`);
-      for (const [c, n] of g) lines.push(`${n} ${c.name}`);
+      lines.push(`${t} (${g.reduce((s, [, n]) => s + n, 0)})`);
+      for (const [c, n] of g) lines.push(`${n} ${c.name} Lv. ${c.level}`);
+      lines.push("");
     }
-    lines.push("", `Tokens (${total(state.tokens)})`);
+    const zero = cards.filter(([c]) => c.cost === 0).reduce((s, [, n]) => s + n, 0);
+    lines.push(`Total: ${total(state.summons)}x summons (${zero}x 0-Cost)`, "");
     const toks = Object.entries(state.tokens).map(([id, n]) => [byId[id], n])
-      .sort((a, z) => (z[0].special - a[0].special) || a[0].value - z[0].value || a[0].name.localeCompare(z[0].name));
-    for (const [t, n] of toks) lines.push(`${n} ${t.name}`);
+      .sort((a, z) => (a[0].special - z[0].special) || a[0].value - z[0].value || a[0].name.localeCompare(z[0].name));
+    for (const [t, n] of toks) lines.push(`${n} ${tokenLabel(t)}`);
+    const kinds = toks.filter(([t]) => t.special).length;
+    lines.push(`Total: ${total(state.tokens)}x tokens (${kinds}x Inscription)`);
     return lines.join("\n");
   }
 
   function importText(text) {
-    const byName = {};
-    for (const it of [...DATA.cards, ...DATA.tokens]) byName[it.name.toLowerCase()] = it;
+    const cardByName = {}, tokByName = {}, normalByValue = {};
+    for (const c of DATA.cards) cardByName[c.name.toLowerCase()] = c;
+    for (const t of DATA.tokens) {
+      if (t.special) tokByName[t.name.toLowerCase()] = t; else normalByValue[t.value] = t;
+    }
     const s = {}, t = {}, unknown = [];
     let name = "";
+    const put = (it, n) => {
+      const b = it.kind === "card" ? s : t;
+      b[it.id] = Math.min((b[it.id] || 0) + n, cap(it));
+    };
     for (const raw of text.split(/\r?\n/)) {
       const line = raw.trim();
-      if (!line) continue;
-      const head = line.match(/^RoVA decklist\s*[—-]\s*(.+)$/i);
+      if (!line || /^total\s*:/i.test(line) || line.startsWith("#")) continue;
+      const head = line.match(/^RoVA decklist\s*[—–-]\s*(.+)$/i);
       if (head) { name = head[1].trim(); continue; }
-      const m = line.match(/^(\d+)\s*[x×]?\s+(.+)$/i);
-      if (!m) continue;
-      const it = byName[m[2].trim().toLowerCase()];
-      if (!it) { unknown.push(m[2].trim()); continue; }
-      const b = it.kind === "card" ? s : t;
-      b[it.id] = Math.min((b[it.id] || 0) + Number(m[1]), cap(it));
+      let m;
+      // tokens: "7 Void Token v.3" or "3 Refract Rune Token v.3"
+      if ((m = line.match(/^(\d+)\s*[x×]?\s+(.+?)\s+Token\s+v\.?\s*(\d+)$/i))) {
+        const n = Number(m[1]), nm = m[2].trim(), v = Number(m[3]);
+        const it = /^void$/i.test(nm) ? normalByValue[v] : tokByName[nm.toLowerCase()];
+        if (it) put(it, n); else unknown.push(`${nm} Token v.${v}`);
+        continue;
+      }
+      // summons: "2 Blaze Spark Lv. 5"
+      if ((m = line.match(/^(\d+)\s*[x×]?\s+(.+?)\s+Lv\.?\s*(\d+)$/i))) {
+        const it = cardByName[m[2].trim().toLowerCase()];
+        if (it) put(it, Number(m[1])); else unknown.push(m[2].trim());
+        continue;
+      }
+      // fallback: "3 Blaze Spark" / "3 Ember Rune" / "4 Void Token 3"
+      if ((m = line.match(/^(\d+)\s*[x×]?\s+(.+)$/i))) {
+        const nm = m[2].trim().toLowerCase();
+        const vt = nm.match(/^void token\s*(\d+)$/);
+        const it = cardByName[nm] || tokByName[nm] || (vt && normalByValue[Number(vt[1])]);
+        if (it) put(it, Number(m[1])); else unknown.push(m[2].trim());
+      }
     }
     state.summons = s; state.tokens = t;
     if (name && name !== "Untitled deck") { state.name = name; $("#deck-name").value = name; }
@@ -385,7 +412,7 @@
     });
   }
 
-  fetch("data/cards.json?v=4")
+  fetch("data/cards.json?v=6")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((data) => {
       DATA = data;
