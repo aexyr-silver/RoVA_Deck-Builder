@@ -362,7 +362,7 @@
     });
   }
 
-  fetch("data/cards.json")
+  fetch("data/cards.json?v=2")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((data) => {
       DATA = data;
