@@ -24,7 +24,8 @@
       "effect": "When summoned: choose another summon you control in the arena. It gets +2 emission until end of turn.",
       "affinity": "It gets +3 emission instead.",
       "restriction": "Sacrifice this card at the end of the turn. The opponent generates a token as normal.",
-      "image": "cards/blaze-spark.png"
+      "image": "cards/blaze-spark.png",
+      "title": ""
     },
     {
       "id": "blaze-striker",
@@ -38,7 +39,8 @@
       "effect": "None",
       "affinity": "+1 emission while attacking.",
       "restriction": "−1 capacity while attacking.",
-      "image": "cards/blaze-striker.png"
+      "image": "cards/blaze-striker.png",
+      "title": ""
     },
     {
       "id": "blaze-raider",
@@ -52,7 +54,8 @@
       "effect": "When this sacrifices a summon in battle: place 1 damage on another summon in the opponent's arena.",
       "affinity": "Place 2 damage instead.",
       "restriction": "Also place 1 damage on another summon in your arena (you choose), if possible.",
-      "image": "cards/blaze-raider.png"
+      "image": "cards/blaze-raider.png",
+      "title": ""
     },
     {
       "id": "blaze-charger",
@@ -66,7 +69,8 @@
       "effect": "When this charges a token on the opponent's Void Altar: +2 emission for that charge.",
       "affinity": "+3 emission instead.",
       "restriction": "When this charges a token on your own Void Altar: −2 emission for that charge.",
-      "image": "cards/blaze-charger.png"
+      "image": "cards/blaze-charger.png",
+      "title": ""
     },
     {
       "id": "blaze-duelist",
@@ -80,7 +84,8 @@
       "effect": "Once per turn, when this attacks a summon and sacrifices it: stand this.",
       "affinity": "It also gets +1 emission until end of turn.",
       "restriction": "If this is also sacrificed in that battle, sacrifice the top token of your stash.",
-      "image": "cards/blaze-duelist.png"
+      "image": "cards/blaze-duelist.png",
+      "title": ""
     },
     {
       "id": "blaze-titan",
@@ -94,7 +99,8 @@
       "effect": "Can't charge tokens. When summoned: the opponent chooses a summon in their arena and sacrifices it, if possible. You generate a token as normal.",
       "affinity": "You choose the summon instead of the opponent.",
       "restriction": "Sacrifice the top token of your stash. The opponent generates a token as normal.",
-      "image": "cards/blaze-titan.png"
+      "image": "cards/blaze-titan.png",
+      "title": ""
     },
     {
       "id": "blaze-flare",
@@ -108,7 +114,8 @@
       "effect": "While this is on the Fragment Recall Altar: your summons in the arena get +1 emission.",
       "affinity": "+2 emission instead.",
       "restriction": "Your summons in the arena also get −1 capacity while this is on the Fragment Recall Altar.",
-      "image": "cards/blaze-flare.png"
+      "image": "cards/blaze-flare.png",
+      "title": ""
     },
     {
       "id": "frost-ward",
@@ -122,7 +129,8 @@
       "effect": "When summoned: choose another summon you control in the arena. It gets +2 capacity until the start of your next turn.",
       "affinity": "It gets +3 capacity instead.",
       "restriction": "This gets −1 capacity until the start of your next turn.",
-      "image": "cards/frost-ward.png"
+      "image": "cards/frost-ward.png",
+      "title": ""
     },
     {
       "id": "frost-guard",
@@ -136,7 +144,8 @@
       "effect": "None",
       "affinity": "+1 capacity while intercepting.",
       "restriction": "−1 emission while intercepting.",
-      "image": "cards/frost-guard.png"
+      "image": "cards/frost-guard.png",
+      "title": ""
     },
     {
       "id": "frost-sentinel",
@@ -150,7 +159,8 @@
       "effect": "When this intercepts: it gets +2 capacity until end of turn.",
       "affinity": "The attacker also gets −1 emission until end of turn.",
       "restriction": "This also gets −1 emission until end of turn.",
-      "image": "cards/frost-sentinel.png"
+      "image": "cards/frost-sentinel.png",
+      "title": ""
     },
     {
       "id": "frost-keeper",
@@ -164,7 +174,8 @@
       "effect": "Once per turn, when this rests: stand it.",
       "affinity": "When it stands this way, it gets +1 capacity until end of turn.",
       "restriction": "After it stands this way, it can't charge tokens this turn.",
-      "image": "cards/frost-keeper.png"
+      "image": "cards/frost-keeper.png",
+      "title": ""
     },
     {
       "id": "frost-bulwark",
@@ -178,7 +189,8 @@
       "effect": "Can move to intercept more than once per turn.",
       "affinity": "Each time this intercepts, the attacker takes 1 damage.",
       "restriction": "Each time this intercepts after the first in a turn, it takes 1 damage.",
-      "image": "cards/frost-bulwark.png"
+      "image": "cards/frost-bulwark.png",
+      "title": ""
     },
     {
       "id": "frost-colossus",
@@ -192,7 +204,8 @@
       "effect": "Can't attack summons. While this is in your arena: your other summons in the back row get +2 capacity.",
       "affinity": "+3 capacity instead.",
       "restriction": "Your summons in the front row get −1 emission.",
-      "image": "cards/frost-colossus.png"
+      "image": "cards/frost-colossus.png",
+      "title": ""
     },
     {
       "id": "frost-thaw",
@@ -206,7 +219,8 @@
       "effect": "While this is on the Fragment Recall Altar: the first of your summons in the arena to rest this turn stands.",
       "affinity": "The stood summon also gets +1 capacity while this is on the Fragment Recall Altar.",
       "restriction": "The effect will fail if spent on a Full card.",
-      "image": "cards/frost-thaw.png"
+      "image": "cards/frost-thaw.png",
+      "title": ""
     },
     {
       "id": "seal-fragment",
@@ -220,7 +234,8 @@
       "effect": "Both players must sacrifice one token from their stash.",
       "affinity": "The opponent doesn't generate tokens for your sacrifices.",
       "restriction": "You sacrifice 2 tokens instead of 1.",
-      "image": "cards/seal-fragment.png"
+      "image": "cards/seal-fragment.png",
+      "title": ""
     },
     {
       "id": "seal-warden",
@@ -234,7 +249,8 @@
       "effect": "While this is in your arena: when the opponent generates a token, you choose which slot of their Void Altar it goes on.",
       "affinity": "That token can't be charged until the end of the opponent's next turn.",
       "restriction": "When you generate a token, the opponent chooses which slot of your Void Altar it goes on.",
-      "image": "cards/seal-warden.png"
+      "image": "cards/seal-warden.png",
+      "title": ""
     },
     {
       "id": "seal-lock",
@@ -248,7 +264,8 @@
       "effect": "When summoned: choose a token on top of a slot of the opponent's Void Altar. It can't be charged until the end of their next turn.",
       "affinity": "Choose up to 2 tokens instead.",
       "restriction": "The opponent chooses a token on top of a slot of your Void Altar. It can't be charged until the end of your next turn.",
-      "image": "cards/seal-lock.png"
+      "image": "cards/seal-lock.png",
+      "title": ""
     },
     {
       "id": "seal-bastion",
@@ -262,7 +279,8 @@
       "effect": "Can't charge tokens. While this is in your arena: summons in the opponent's arena can't move, including to intercept.",
       "affinity": "Effects can't move them either.",
       "restriction": "Summons in your arena can't move to intercept either.",
-      "image": "cards/seal-bastion.png"
+      "image": "cards/seal-bastion.png",
+      "title": ""
     },
     {
       "id": "static-pulse",
@@ -276,7 +294,8 @@
       "effect": "Once per turn, when you stand your summons: place 1 damage on a summon in the opponent's arena.",
       "affinity": "Place 2 damage instead.",
       "restriction": "Also place 1 damage on another summon in your arena (you choose), if possible.",
-      "image": "cards/static-pulse.png"
+      "image": "cards/static-pulse.png",
+      "title": ""
     },
     {
       "id": "static-coil",
@@ -290,7 +309,8 @@
       "effect": "When this deals damage to a summon: that summon gets −1 capacity until the end of your next turn.",
       "affinity": "−2 capacity instead.",
       "restriction": "This also gets −1 capacity until the end of your next turn.",
-      "image": "cards/static-coil.png"
+      "image": "cards/static-coil.png",
+      "title": ""
     },
     {
       "id": "static-storm",
@@ -304,7 +324,8 @@
       "effect": "Once per turn, when you stand your summons: place 1 damage on every summon in the opponent's arena.",
       "affinity": "The opponent's summons with damage on them also get −1 emission until end of turn.",
       "restriction": "Also place 1 damage on every other summon in your arena.",
-      "image": "cards/static-storm.png"
+      "image": "cards/static-storm.png",
+      "title": ""
     },
     {
       "id": "static-surge",
@@ -318,7 +339,8 @@
       "effect": "While this is on the Fragment Recall Altar: each time one of your summons deals damage to a summon, place 1 more damage on it.",
       "affinity": "Place 2 more damage instead.",
       "restriction": "Each time one of your summons takes damage, it takes 1 more damage.",
-      "image": "cards/static-surge.png"
+      "image": "cards/static-surge.png",
+      "title": ""
     },
     {
       "id": "flow-runner",
@@ -332,7 +354,8 @@
       "effect": "Can move to intercept from any slot in your arena, not just the front row.",
       "affinity": "After it intercepts and survives, it may move to any empty slot in your arena.",
       "restriction": "After it intercepts, it rests.",
-      "image": "cards/flow-runner.png"
+      "image": "cards/flow-runner.png",
+      "title": ""
     },
     {
       "id": "flow-drifter",
@@ -346,7 +369,8 @@
       "effect": "Once per turn, during your turn: move one of your summons in the arena to an empty slot it can be placed in.",
       "affinity": "You may move one of the opponent's summons in their arena instead.",
       "restriction": "Then the opponent may move one of their summons in their arena the same way.",
-      "image": "cards/flow-drifter.png"
+      "image": "cards/flow-drifter.png",
+      "title": ""
     },
     {
       "id": "flow-tide",
@@ -360,7 +384,8 @@
       "effect": "When summoned: move up to 2 summons in the opponent's arena to other empty slots they can be placed in (you choose).",
       "affinity": "Move up to 3 instead.",
       "restriction": "Then the opponent moves up to 2 summons in your arena the same way.",
-      "image": "cards/flow-tide.png"
+      "image": "cards/flow-tide.png",
+      "title": ""
     },
     {
       "id": "flow-shift",
@@ -374,7 +399,8 @@
       "effect": "When placed on the Fragment Recall Altar: move up to 2 of your summons in the arena to empty slots they can be placed in.",
       "affinity": "You may move one of the opponent's summons in their arena instead of one of yours.",
       "restriction": "Then the opponent moves 1 of your summons in your arena the same way.",
-      "image": "cards/flow-shift.png"
+      "image": "cards/flow-shift.png",
+      "title": ""
     },
     {
       "id": "hidden-snare",
@@ -388,7 +414,8 @@
       "effect": "Once per turn, when an opposing summon attacks one of your summons in the arena, you may sacrifice this: the attacker deals 0 damage in that battle. The opponent generates a token as normal.",
       "affinity": "The attacker also gets −2 capacity until end of turn.",
       "restriction": "The opponent generates 2 tokens for this sacrifice instead of 1.",
-      "image": "cards/hidden-snare.png"
+      "image": "cards/hidden-snare.png",
+      "title": ""
     },
     {
       "id": "hidden-tripwire",
@@ -402,7 +429,8 @@
       "effect": "When an opposing summon attacks a summon in the same column as this: the attacker also takes 2 damage.",
       "affinity": "3 damage instead.",
       "restriction": "This also takes 1 damage.",
-      "image": "cards/hidden-tripwire.png"
+      "image": "cards/hidden-tripwire.png",
+      "title": ""
     },
     {
       "id": "hidden-lure",
@@ -416,7 +444,8 @@
       "effect": "When an opposing summon attacks this: the opponent sacrifices the top token of their stash, if possible. You generate a token as normal.",
       "affinity": "The attacker also rests if it was standing.",
       "restriction": "You also sacrifice the top token of your stash, if possible. The opponent generates a token as normal.",
-      "image": "cards/hidden-lure.png"
+      "image": "cards/hidden-lure.png",
+      "title": ""
     },
     {
       "id": "hidden-ambush",
@@ -430,7 +459,8 @@
       "effect": "While this is on the Fragment Recall Altar: the first opposing summon to intercept this turn takes 2 damage.",
       "affinity": "3 damage instead.",
       "restriction": "The attacking summon it intercepted also takes 1 damage.",
-      "image": "cards/hidden-ambush.png"
+      "image": "cards/hidden-ambush.png",
+      "title": ""
     },
     {
       "id": "refract-lens",
@@ -444,7 +474,8 @@
       "effect": "When summoned: look at the opponent's hand.",
       "affinity": "Also look at the top card of their deck.",
       "restriction": "The opponent looks at your hand.",
-      "image": "cards/refract-lens.png"
+      "image": "cards/refract-lens.png",
+      "title": ""
     },
     {
       "id": "refract-prism",
@@ -458,7 +489,8 @@
       "effect": "When summoned: reveal the top 2 cards of your deck. Put 1 in your hand and the other on the bottom.",
       "affinity": "Reveal 3 instead.",
       "restriction": "The opponent chooses which card you put in your hand.",
-      "image": "cards/refract-prism.png"
+      "image": "cards/refract-prism.png",
+      "title": ""
     },
     {
       "id": "refract-mirror",
@@ -472,7 +504,8 @@
       "effect": "When summoned: the opponent reveals their hand. Choose a card from it; they sacrifice it. You generate a token as normal.",
       "affinity": "You also draw 1 card.",
       "restriction": "You reveal your hand too. The opponent chooses a card from it and you sacrifice it. The opponent generates a token as normal.",
-      "image": "cards/refract-mirror.png"
+      "image": "cards/refract-mirror.png",
+      "title": ""
     },
     {
       "id": "refract-glimpse",
@@ -486,7 +519,8 @@
       "effect": "When placed on the Fragment Recall Altar: look at the top 3 cards of the opponent's deck, then put them back in any order.",
       "affinity": "Also look at the opponent's hand.",
       "restriction": "The opponent looks at the top 3 cards of your deck and puts them back in any order.",
-      "image": "cards/refract-glimpse.png"
+      "image": "cards/refract-glimpse.png",
+      "title": ""
     },
     {
       "id": "chaos-rift",
@@ -500,7 +534,8 @@
       "effect": "Abyss effect. While this is active in the abyss: summons in both arenas get +1 emission.",
       "affinity": "Only your summons get the bonus.",
       "restriction": "Summons in both arenas also get −1 capacity while this is active.",
-      "image": "cards/chaos-rift.png"
+      "image": "cards/chaos-rift.png",
+      "title": ""
     },
     {
       "id": "chaos-recall",
@@ -514,7 +549,8 @@
       "effect": "When summoned: return a face-up card from your Void Abyss to your hand.",
       "affinity": "You also draw 1 card.",
       "restriction": "The opponent returns a face-up card from their Void Abyss to their hand, if possible.",
-      "image": "cards/chaos-recall.png"
+      "image": "cards/chaos-recall.png",
+      "title": ""
     },
     {
       "id": "chaos-breaker",
@@ -528,7 +564,8 @@
       "effect": "When summoned: dissipate the active card or token in the abyss, if there is one.",
       "affinity": "You also draw 1 card.",
       "restriction": "Sacrifice this card. The opponent generates a token as normal.",
-      "image": "cards/chaos-breaker.png"
+      "image": "cards/chaos-breaker.png",
+      "title": ""
     },
     {
       "id": "chaos-echo",
@@ -542,7 +579,8 @@
       "effect": "When placed on the Fragment Recall Altar: put a face-up card from your Void Abyss on top of your deck.",
       "affinity": "Put it in your hand instead.",
       "restriction": "The opponent puts a face-up card from their Void Abyss on top of their deck, if possible.",
-      "image": "cards/chaos-echo.png"
+      "image": "cards/chaos-echo.png",
+      "title": ""
     }
   ],
   "tokens": [
