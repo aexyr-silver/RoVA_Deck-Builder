@@ -334,7 +334,25 @@
     for (const c of costs) fc.append(el("option", { value: String(c), text: `Cost ${c}` }));
   }
 
+  function wireTheme() {
+    const btn = $("#btn-theme");
+    const icons = { auto: "Auto", dark: "Dark", light: "Light" };
+    const order = ["auto", "dark", "light"];
+    let cur = "auto";
+    try { const t = localStorage.getItem("rova-theme"); if (t === "dark" || t === "light") cur = t; } catch (_) {}
+    const apply = () => {
+      if (cur === "auto") delete document.documentElement.dataset.theme;
+      else document.documentElement.dataset.theme = cur;
+      btn.textContent = icons[cur];
+      btn.title = btn.ariaLabel = `Theme: ${cur}`;
+      try { if (cur === "auto") localStorage.removeItem("rova-theme"); else localStorage.setItem("rova-theme", cur); } catch (_) {}
+    };
+    btn.addEventListener("click", () => { cur = order[(order.indexOf(cur) + 1) % order.length]; apply(); });
+    apply();
+  }
+
   function wire() {
+    wireTheme();
     for (const t of document.querySelectorAll(".mode-switch button")) {
       t.addEventListener("click", () => { state.mode = t.dataset.mode; disarm(); save(); render(); });
     }
@@ -362,7 +380,7 @@
     });
   }
 
-  fetch("data/cards.json?v=2")
+  fetch("data/cards.json?v=3")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((data) => {
       DATA = data;

@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RoVA Deck Builder</title>
-<link rel="stylesheet" href="style.css?v=2">
+<script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <header class="topbar">
@@ -21,6 +22,7 @@
   </div>
   <div class="top-actions">
     <input id="deck-name" type="text" placeholder="Deck name" aria-label="Deck name" maxlength="60">
+    <button id="btn-theme" class="ghost" aria-label="Theme: auto" title="Theme: auto">Auto</button>
     <button id="btn-export" class="primary">Export</button>
   </div>
 </header>
@@ -85,6 +87,6 @@
 <div id="print-list" class="print-only"></div>
 <div id="print-proxies" class="print-only"></div>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
