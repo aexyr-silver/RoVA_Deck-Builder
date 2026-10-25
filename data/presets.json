@@ -2,7 +2,7 @@
   "note": "Preset decks for the playtest simulator. Each list uses the deck builder's export format. Replace these samples with your own.",
   "presets": [
     {
-      "name": "or choose a Preset Deck below.",
+      "name": "or choose a Preset Deck below",
       "list": "RoVA Decklist - Sample\n\nFull (4)\n2 Frost Colossus - Lv. 3\n1 Refract Mirror - Lv. 3\n1 Seal Bastion - Lv. 3\n\nHalf (25)\n5 Frost Guard - Lv. 5\n4 Frost Sentinel - Lv. 5\n3 Frost Keeper - Lv. 4\n3 Frost Bulwark - Lv. 4\n3 Hidden Tripwire - Lv. 5\n3 Refract Prism - Lv. 5\n2 Seal Warden - Lv. 4\n2 Flow Runner - Lv. 5\n\nQuarter (12)\n4 Frost Ward - Lv. 5\n2 Hidden Snare - Lv. 4\n3 Hidden Lure - Lv. 5\n3 Refract Lens - Lv. 5\n\nFragment (9)\n3 Frost Thaw - Lv. 4\n2 Hidden Ambush - Lv. 4\n2 Refract Glimpse - Lv. 4\n2 Seal Fragment - Lv. 3\n\nTotal: 50x summons (26x 0-Cost)\n\n8 Void Token v.3\n6 Void Token v.5\n4 Void Token v.7\n2 Hoar Rune Token v.5\n2 Rime Rune Token v.7\n2 Hidden Rune Token v.7\n1 Refract Rune Token v.3\nTotal: 25x tokens (4x Inscription)"
     },
     {
