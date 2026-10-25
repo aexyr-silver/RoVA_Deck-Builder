@@ -6,7 +6,7 @@
 <title>RoVA Playtest</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="stylesheet" href="style.css?v=9">
-<link rel="stylesheet" href="sim.css?v=10">
+<link rel="stylesheet" href="sim.css?v=11">
 </head>
 <body class="sim">
 <header class="topbar">
@@ -19,6 +19,7 @@
   </div>
   <span id="net-status" class="pill" hidden></span>
   <div class="top-actions">
+    <button id="btn-leave" class="danger-ghost leave" title="Leave the room and go back to the lobby" hidden>Leave</button>
     <a class="btn-link" href="index.html">Deck builder</a>
     <button id="btn-theme" class="ghost" aria-label="Theme: auto" title="Theme: auto">Auto</button>
   </div>
@@ -102,6 +103,6 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/peerjs-1.5.5.min.js"></script>
-<script src="sim.js?v=13"></script>
+<script src="sim.js?v=14"></script>
 </body>
 </html>

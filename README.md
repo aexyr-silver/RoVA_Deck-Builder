@@ -126,6 +126,11 @@ You can't join your own room: once you've created a room, the Join box in that t
 
 The two browsers connect directly to each other. A free public service (PeerJS) is used only to help them find each other. The host's browser runs the game, so **if the host closes or reloads the page, the game ends**. The page warns before closing.
 
+**Leave:** once you've created a room, joined one or started solo, a **Leave** button appears at the top right. Click it, then click **Leave?** within 3 seconds to confirm. You go back to the lobby; your name and decks are kept.
+
+- If the **guest** leaves, the host gets a pop-up and a log entry. Before the game starts, the room stays open for someone else to join.
+- If the **host** leaves, the room closes and the game ends. The guest gets a pop-up and can press Leave to return to the lobby.
+
 **Play solo (one computer):**
 
 Choose a deck for the second player under **Player 2 deck**, then click **Start solo**. You control both sides; use **Switch to …** to act as the other player. In solo mode, both hands are visible, and the left column has Setup, Ready and Reset for both sides.

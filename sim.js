@@ -542,15 +542,29 @@
           $("#btn-start-online").disabled = false;
           if (ctl.S) publish();
         } else if (msg.t === "action" && ctl.S) { runAction(ctl.S, 1, msg.a, false); publish(); }
+        else if (msg.t === "bye") opponentLeft(true);
       });
-      conn.on("close", () => { netStatus("Opponent left", "bad"); toast("Opponent disconnected"); ctl.conn = null; });
+      conn.on("close", () => opponentLeft(false));
     });
+  }
+  function opponentLeft(said) {
+    if (!ctl.conn && !said) return;
+    ctl.conn = null;
+    netStatus("Opponent left", "bad");
+    if (ctl.S) {
+      log(ctl.S, "sys", `${ctl.S.players[1].name} ${said ? "left the room" : "disconnected"}.`); publish();
+      if (said) showAlert("Opponent left", `${ctl.S.players[1].name} left the room. Press Leave to go back to the lobby.`);
+      else toast("Opponent disconnected");
+    } else {   // still in the lobby: wait for someone else
+      ctl.guestDeck = null; $("#btn-start-online").disabled = true; $("#host-wait").textContent = "Opponent left. Waiting for opponent…";
+    }
   }
   function startOnline() {
     const mine = readDeck(0); if (!mine || !ctl.guestDeck) return;
     ctl.S = newGame([mine, ctl.guestDeck], [myName(), ctl.guestName]); ctl.hist = [];
     showGame(); publish();
   }
+  let hostLeft = false;
   function join() {
     const code = $("#join-code").value.trim().toUpperCase();
     if (ctl.mode === "host") {
@@ -580,8 +594,9 @@
         if (!msg || typeof msg !== "object") return;
         if (msg.t === "view") { ctl.V = msg.v; if ($("#game").hidden) showGame(); render(); }
         else if (msg.t === "error") { $("#join-msg").textContent = msg.msg; toast(msg.msg); netStatus("Not joined", "bad"); giveUp(); }
+        else if (msg.t === "bye") { hostLeft = true; netStatus("Host left", "bad"); if ($("#game").hidden) { $("#join-msg").textContent = "The host closed the room."; giveUp(); } else showAlert("Host left", "The host left the room. The game has ended. Press Leave to go back to the lobby."); }
       });
-      conn.on("close", () => { if ($("#game").hidden) { giveUp(); return; } netStatus("Disconnected", "bad"); toast("Host disconnected"); });
+      conn.on("close", () => { if ($("#game").hidden) { giveUp(); return; } if (hostLeft) return; netStatus("Disconnected", "bad"); toast("Host disconnected"); });
     });
     ctl.peer.on("error", (e) => { netStatus("Couldn't connect", "bad"); $("#join-msg").textContent = e.type === "peer-unavailable" ? "No room with that code." : `Connection error: ${e.type || e}`; giveUp(); });
   }
@@ -592,6 +607,20 @@
     ctl.soloActing = 0;
     showGame(); publish();
   }
+  // Leave the room: tell the other player, then go back to the lobby (decks and name are kept in this browser)
+  let leaving = false, leaveArm = 0;
+  function leaveRoom() {
+    const btn = $("#btn-leave");
+    if (!leaveArm || Date.now() - leaveArm > 3000) {
+      leaveArm = Date.now(); btn.textContent = "Leave?"; btn.classList.add("armed");
+      setTimeout(() => { if (leaveArm && Date.now() - leaveArm >= 3000) { leaveArm = 0; btn.textContent = "Leave"; btn.classList.remove("armed"); } }, 3100);
+      return;
+    }
+    leaving = true;
+    try { if (ctl.conn && ctl.conn.open) ctl.conn.send({ t: "bye" }); } catch (_) {}
+    setTimeout(() => { try { ctl.peer && ctl.peer.destroy(); } catch (_) {} location.reload(); }, 250);
+  }
+  function updateLeave() { $("#btn-leave").hidden = !(ctl.mode === "solo" || ctl.mode === "host" || ctl.mode === "guest"); }
   function showGame() { $("#lobby").hidden = true; $("#game").hidden = false; document.body.classList.add("in-game"); fitBoard(); }
 
   /* Size the cards so the whole board fits the screen without scrolling */
@@ -665,9 +694,11 @@
   function renderAlert(V) {
     if (!V.alert || V.alert.n === lastAlert) return;
     lastAlert = V.alert.n;
-    const box = $("#alert");
-    $("#alert-text").textContent = V.alert.text;
-    box.hidden = false; $("#alert-ok").focus();
+    showAlert("Vote mismatch", V.alert.text);
+  }
+  function showAlert(title, text) {
+    $("#alert-title").textContent = title; $("#alert-text").textContent = text;
+    $("#alert").hidden = false; $("#alert-ok").focus();
   }
 
   function renderBanner(V, me) {
@@ -1088,7 +1119,9 @@
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#alert").hidden = true; closeMenu(); if (ui.pick) { ui.pick = null; render(); } else if (overlayKind && overlayKind.t === "abyss") closeOverlay(); } });
     $("#overlay").addEventListener("click", (e) => { if (e.target.id === "overlay" && overlayKind && overlayKind.t === "abyss") closeOverlay(); });
     window.addEventListener("resize", fitBoard);
-    window.addEventListener("beforeunload", (e) => { if (ctl.S || ctl.V) { e.preventDefault(); e.returnValue = ""; } });
+    window.addEventListener("beforeunload", (e) => { if (!leaving && (ctl.S || ctl.V)) { e.preventDefault(); e.returnValue = ""; } });
+    $("#btn-leave").addEventListener("click", leaveRoom);
+    setInterval(updateLeave, 500);
   }
 
   Promise.all([

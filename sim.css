@@ -230,3 +230,4 @@ div.fieldtag { text-align: center; padding: 5px 8px; }
 
 /* card zoom above menus, the Abyss/peek windows and pop-ups */
 .preview { z-index: 60; }
+.top-actions .leave { grid-column: auto; padding: 7px 12px; }
