@@ -90,7 +90,7 @@
     $("#pool-title").textContent = state.mode === "summons" ? "All summons" : "All tokens";
     $("#f-kind").hidden = state.mode !== "summons";
     $("#f-cost").hidden = state.mode !== "summons";
-    $("#search").placeholder = state.mode === "summons" ? "Search name or text" : "Search tokens";
+    $("#search").placeholder = state.mode === "summons" ? "Search" : "Search tokens";
     renderChosen();
     renderPool();
   }

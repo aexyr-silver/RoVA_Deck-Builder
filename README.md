@@ -51,7 +51,7 @@ Use the **Summons / Tokens** switch at the top to change mode. Switching modes n
 
 ### Deck name, clearing, theme
 
-- Type a **deck name** at the top. It's included when you export.
+- Type a **deck name** in the box under the top bar, above the card lists. It's included when you export.
 - **Clear** empties the list for the current mode only. Click it once and it asks "Confirm?"; click again within 3 seconds to confirm.
 - The **Auto / Dark / Light** button changes the colour theme. Auto follows your device's setting.
 - Your deck, its name and your theme are saved in this browser, so they're still there next time. They don't carry over to another browser or device. To move a deck, export it and import it there.
