@@ -239,7 +239,7 @@
       const g = cards.filter(([c]) => c.cardType === t).sort(sortCards);
       if (!g.length) continue;
       lines.push(`${t} (${g.reduce((s, [, n]) => s + n, 0)})`);
-      for (const [c, n] of g) lines.push(`${n} ${c.name} Lv. ${c.level}`);
+      for (const [c, n] of g) lines.push(`${n} ${c.name} ${c.title ? c.title : "-"} Lv. ${c.level}`);
       lines.push("");
     }
     const zero = cards.filter(([c]) => c.cost === 0).reduce((s, [, n]) => s + n, 0);
@@ -250,6 +250,17 @@
     const kinds = toks.filter(([t]) => t.special).length;
     lines.push(`Total: ${total(state.tokens)}x tokens (${kinds}x Inscription)`);
     return lines.join("\n");
+  }
+
+  // the longest known card name the text starts with; what follows is the title (or "-")
+  function matchCard(rest) {
+    const low = rest.toLowerCase();
+    let best = null;
+    for (const c of DATA.cards) {
+      const nm = c.name.toLowerCase();
+      if ((low === nm || low.startsWith(nm + " ")) && (!best || nm.length > best.name.length)) best = c;
+    }
+    return best;
   }
 
   function importText(text) {
@@ -277,10 +288,11 @@
         if (it) put(it, n); else unknown.push(`${nm} Token v.${v}`);
         continue;
       }
-      // summons: "2 Blaze Spark Lv. 5"
+      // summons: "2 Blaze Spark - Lv. 5" or "2 Name Title Lv. 5"
       if ((m = line.match(/^(\d+)\s*[x×]?\s+(.+?)\s+Lv\.?\s*(\d+)$/i))) {
-        const it = cardByName[m[2].trim().toLowerCase()];
-        if (it) put(it, Number(m[1])); else unknown.push(m[2].trim());
+        const rest = m[2].trim();
+        const it = matchCard(rest);
+        if (it) put(it, Number(m[1])); else unknown.push(rest.replace(/\s+-$/, ""));
         continue;
       }
       // fallback: "3 Blaze Spark" / "3 Ember Rune" / "4 Void Token 3"
@@ -412,7 +424,7 @@
     });
   }
 
-  fetch("data/cards.json?v=6")
+  fetch("data/cards.json?v=7")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((data) => {
       DATA = data;
