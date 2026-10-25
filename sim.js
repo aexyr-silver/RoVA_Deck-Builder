@@ -76,43 +76,79 @@
   function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
   function newGame(decks, names) {
-    const S = { started: true, turn: 0, turnNo: 1, first: 0, field: "Radiant", fra: null, altarUsed: [false, false],
+    const S = { started: true, phase: "setup", turn: 0, turnNo: 0, first: 0, field: "Radiant", fra: null, altarUsed: [false, false],
       activeAbyss: null, objects: {}, players: [], log: [], chat: [], seq: 0, cseq: 0, over: false };
     let n = 0;
     const mk = (kind, ref, owner) => { const iid = `o${++n}`; S.objects[iid] = { iid, kind, ref, owner, rested: false, dmg: 0, charge: 0, down: false }; return iid; };
     for (let p = 0; p < 2; p++) {
-      S.players.push({ name: names[p] || `Player ${p + 1}`, deck: shuffle(decks[p].cards.map((id) => mk("card", id, p))),
+      const cards = decks[p].cards.map((id) => mk("card", id, p)), tokens = decks[p].tokens.map((id) => mk("token", id, p));
+      S.players.push({ name: names[p] || `Player ${p + 1}`, deck: cards.slice(), order: { cards, tokens },
         hand: [], arena: Object.fromEntries(SLOTS.map((s) => [s, null])), abyss: [],
-        stack: shuffle(decks[p].tokens.map((id) => mk("token", id, p))), altar: [[], [], []], stash: [],
-        pendingGen: 0, handRevealed: false, peek: null });
+        stack: tokens.slice(), altar: [[], [], []], stash: [],
+        pendingGen: 0, handRevealed: false, peek: null, setupDone: false, ready: false });
     }
-    log(S, "sys", "Game started. Decks and token stacks shuffled.");
-    for (let p = 0; p < 2; p++) drawCards(S, p, 4, true);
-    // Setup: reveal tokens to pick the first player
+    log(S, "sys", "Table opened. Nothing is shuffled or drawn yet. Each player: press Setup, then Ready.");
+    return S;
+  }
+
+  // Setup: shuffle, draw 4, reveal 3 tokens (owner only)
+  function setupSide(S, p) {
+    const P = S.players[p]; if (P.setupDone) return;
+    shuffle(P.deck); shuffle(P.stack);
+    drawCards(S, p, 4, true);
+    const vals = [];
+    for (let k = 0; k < 3 && P.stack.length; k++) { const t = P.stack.shift(); P.altar[k].push(t); vals.push(REF[S.objects[t].ref].value); }
+    P.setupDone = true;
+    log(S, "", `${pn(S, p)} sets up: deck and token stack shuffled, draws 4, reveals setup tokens ${vals.join(", ")}.`);
+  }
+  // Reset: everything of that player's back into deck and stack, as before Setup
+  function resetSide(S, p) {
+    const P = S.players[p];
+    for (const iid of [...P.order.cards, ...P.order.tokens]) Object.assign(S.objects[iid], { rested: false, dmg: 0, charge: 0, down: false });
+    if (S.fra && S.fra.owner === p) S.fra = null;
+    if (S.activeAbyss && S.objects[S.activeAbyss].owner === p) S.activeAbyss = null;
+    for (const Q of S.players) if (Q.peek && Q.peek.owner === p) Q.peek = null;
+    Object.assign(P, { deck: P.order.cards.slice(), stack: P.order.tokens.slice(), hand: [], abyss: [], stash: [],
+      arena: Object.fromEntries(SLOTS.map((s) => [s, null])), altar: [[], [], []],
+      pendingGen: 0, handRevealed: false, setupDone: false, ready: false });
+    log(S, "sys", `${pn(S, p)} resets their side: all cards back in the deck and all tokens back in the stack.`);
+    if (S.phase === "play") {
+      S.phase = "setup"; S.over = false; S.turnNo = 0; S.altarUsed = [false, false];
+      for (const Q of S.players) Q.ready = false;
+      log(S, "sys", "The game is back at setup. It begins again when both players are Ready.");
+    }
+  }
+  function toggleReady(S, p) {
+    const P = S.players[p]; if (!P.setupDone || S.phase !== "setup") return;
+    P.ready = !P.ready;
+    log(S, "", `${pn(S, p)} is ${P.ready ? "ready" : "no longer ready"}.`);
+    if (S.players.every((Q) => Q.ready)) beginGame(S);
+  }
+  // Both ready: compare setup tokens to pick the first player, then start turn 1
+  function beginGame(S) {
     let decided = false;
     for (let attempt = 0; attempt < 30 && !decided; attempt++) {
-      const vals = [[], []];
-      for (let p = 0; p < 2; p++) for (let s = 0; s < 3; s++) {
-        const P = S.players[p]; if (!P.stack.length) break;
-        const t = P.stack.shift(); P.altar[s].push(t); vals[p].push(REF[S.objects[t].ref].value);
-      }
+      const vals = S.players.map((P) => P.altar.map((sl) => (sl[0] ? REF[S.objects[sl[0]].ref].value : 0)));
       for (let k = 1; k <= 3 && !decided; k++) {
         const a = vals[0].slice(0, k).reduce((x, y) => x + y, 0), b = vals[1].slice(0, k).reduce((x, y) => x + y, 0);
         if (a !== b) { S.first = a > b ? 0 : 1; decided = true;
           log(S, "sys", `Setup tokens: ${S.players[0].name} ${vals[0].join("+")}, ${S.players[1].name} ${vals[1].join("+")}. ${S.players[S.first].name} goes first.`); }
       }
       if (!decided) {
-        for (let p = 0; p < 2; p++) { const P = S.players[p]; for (const sl of P.altar) P.stack.push(...sl.splice(0)); shuffle(P.stack); }
-        log(S, "sys", "Setup tokens tied. Shuffled and revealed again.");
+        for (const P of S.players) {
+          for (const sl of P.altar) P.stack.push(...sl.splice(0)); shuffle(P.stack);
+          for (let k = 0; k < 3 && P.stack.length; k++) P.altar[k].push(P.stack.shift());
+        }
+        log(S, "sys", "Setup tokens tied. Both token stacks shuffled and 3 tokens revealed again.");
       }
     }
     if (!decided) { S.first = 0; log(S, "sys", "Setup kept tying; Player 1 goes first."); }
-    S.turn = S.first;
+    S.phase = "play"; S.turn = S.first; S.turnNo = 1;
+    log(S, "sys", "Both players are ready. The game begins.");
     startTurn(S);
-    return S;
   }
 
-  function log(S, kind, text) { S.log.push({ kind, text, n: ++S.seq, turn: S.turnNo || 1 }); if (S.log.length > 600) S.log.splice(0, S.log.length - 600); }
+  function log(S, kind, text) { S.log.push({ kind, text, n: ++S.seq, turn: S.turnNo }); if (S.log.length > 600) S.log.splice(0, S.log.length - 600); }
   const nm = (S, iid) => { const o = S.objects[iid]; return o ? REF[o.ref].name : "?"; };
   const pn = (S, p) => S.players[p].name;
 
@@ -188,7 +224,12 @@
     const me = actor, P = S.players[me];
     const own = (iid) => { const o = S.objects[iid]; return o && o.owner === me; };
     const L = a.iid ? locate(S, a.iid) : null;
+    const side = solo && (a.player === 0 || a.player === 1) ? a.player : me;   // solo may act for either side
+    if (S.phase === "setup" && !["say", "setup", "ready", "reset", "coin", "field"].includes(a.type)) return;
     switch (a.type) {
+      case "setup": if (S.phase === "setup") setupSide(S, side); break;
+      case "ready": toggleReady(S, side); break;
+      case "reset": resetSide(S, side); break;
       case "say": if (a.text) { S.chat.push({ who: me, name: pn(S, me), text: String(a.text).slice(0, 300), n: ++S.cseq, at: Date.now() }); if (S.chat.length > 300) S.chat.splice(0, S.chat.length - 300); } break;
       case "draw": drawCards(S, me, Math.max(1, Math.min(5, a.n | 0))); break;
       case "shuffle": shuffle(P.deck); log(S, "", `${pn(S, me)} shuffles their deck.`); break;
@@ -313,7 +354,7 @@
       const Q = V.players[q];
       const showHand = all || q === p || Q.handRevealed;
       Q.handCount = Q.hand.length; if (!showHand) Q.hand = Q.hand.map(() => null);
-      Q.deckCount = Q.deck.length; Q.deck = [];
+      Q.deckCount = Q.deck.length; Q.deck = []; Q.order = null;
       Q.stackCount = Q.stack.length; Q.stack = [];
       Q.stashCount = Q.stash.length; Q.stash = Q.stash.length ? [Q.stash[Q.stash.length - 1]] : [];
       if (q !== p && !all) Q.peek = null;
@@ -343,8 +384,9 @@
     if (ctl.mode === "guest") { if (ctl.conn && ctl.conn.open) ctl.conn.send({ t: "action", a }); else toast("Not connected"); return; }
     if (!ctl.S) return;
     const actor = ctl.mode === "solo" ? ctl.soloActing : 0;
+    const before = ctl.S.phase;
     apply(ctl.S, actor, a, ctl.mode === "solo");
-    if (ctl.mode === "solo" && a.type === "endTurn") ctl.soloActing = ctl.S.turn;
+    if (ctl.mode === "solo" && (a.type === "endTurn" || (before === "setup" && ctl.S.phase === "play"))) ctl.soloActing = ctl.S.turn;
     publish();
   }
   function publish() {
@@ -420,10 +462,19 @@
     const a = readDeck(0), b = readDeck(1); if (!a || !b) return;
     ctl.mode = "solo";
     ctl.S = newGame([a, b], [myName(), "Player 2"]);
-    ctl.soloActing = ctl.S.turn;
+    ctl.soloActing = 0;
     showGame(); publish();
   }
-  function showGame() { $("#lobby").hidden = true; $("#game").hidden = false; }
+  function showGame() { $("#lobby").hidden = true; $("#game").hidden = false; document.body.classList.add("in-game"); fitBoard(); }
+
+  /* Size the cards so the whole board fits the screen without scrolling */
+  function fitBoard() {
+    const b = $(".board-wrap"); if (!b || $("#game").hidden) return;
+    const H = b.clientHeight, W = b.clientWidth;
+    let ch = innerWidth <= 1000 ? (W - 50) / 5.05 : Math.min((H - 150) / 7.85, (W - 50) / 5.05);
+    ch = Math.max(40, Math.min(132, Math.floor(ch)));
+    document.documentElement.style.setProperty("--ch", ch + "px");
+  }
 
   /* =================================================================== */
   /* Lobby: deck pickers                                                  */
@@ -476,6 +527,7 @@
     renderSide($("#side-me"), V, me, true);
     renderSide($("#side-opp"), V, them, false);
     renderCentre(V, me);
+    renderControls(V, me);
     renderHands(V, me);
     renderLog(V);
     renderPeek(V, me);
@@ -495,7 +547,7 @@
           onPick: (slot) => act({ type: "generate", player: p, slot, pending: true }) }) }));
         parts.push(el("button", { text: "Skip one", onclick: () => act({ type: "skipGen", player: p }) }));
       }
-      if (V.over) parts.push(el("span", { text: "The game is won. Start a new one from the lobby (reload the page)." }));
+      if (V.over) parts.push(el("span", { text: "The game is won. Both players can Reset their side to play again, or reload for the lobby." }));
     }
     b.hidden = !parts.length; b.append(...parts);
   }
@@ -574,24 +626,56 @@
 
   function renderCentre(V, me) {
     const c = $("#centre"); c.replaceChildren();
-    const meP = V.players[me];
-    const myTurn = V.turn === me || ctl.mode === "solo";
-    const fra = el("div", { class: `fra${V.altarUsed[V.turn] ? " used" : ""}`, title: "Fragment Recall Altar (shared)" });
+    const fra = el("div", { class: `fra${V.phase === "play" && V.altarUsed[V.turn] ? " used" : ""}`, title: "Fragment Recall Altar (shared)" });
     if (V.fra) { const n = objNode(V, V.fra.iid); n.addEventListener("click", (e) => menuFra(e, V)); fra.append(n); }
-    fra.append(el("span", { class: "lbl", text: "Fragment Recall Altar" }));
-    const info = el("div", { class: "turninfo" },
-      el("div", { class: "who", text: `${V.players[V.turn].name}'s turn` }),
-      el("div", { class: "sub2", text: `Turn ${V.turnNo}${ctl.mode === "solo" ? ` · acting as ${meP.name}` : (V.turn === me ? " · your turn" : "")}` }));
-    const field = el("button", { class: "fieldtag", text: `Arcana Field: ${V.field}`, title: "Click to switch Radiant / Dormant", onclick: () => act({ type: "field" }) });
-    const ctrls = el("div", { class: "ctrls" },
-      el("button", { class: "primary", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) }),
+    c.append(fra, el("span", { class: "fra-lbl", text: "Fragment Recall Altar" }));
+  }
+
+  // Reset needs a second click within 3 seconds
+  const resetArm = {};
+  function sideStatus(P) { return !P.setupDone ? "Not set up" : P.ready ? "Ready" : "Set up · not ready"; }
+  function sideBox(V, p, title) {
+    const P = V.players[p], setup = V.phase === "setup";
+    const extra = ctl.mode === "solo" ? { player: p } : {};
+    const armed = resetArm[p] && Date.now() - resetArm[p] < 3000;
+    const reset = el("button", { class: `danger-ghost${armed ? " armed" : ""}`, text: armed ? "Confirm reset?" : "Reset side",
+      title: "Return all of this player's cards to the deck and tokens to the stack, as before Setup",
+      onclick: () => {
+        if (resetArm[p] && Date.now() - resetArm[p] < 3000) { resetArm[p] = 0; act({ type: "reset", ...extra }); return; }
+        resetArm[p] = Date.now(); render(); setTimeout(() => { if (resetArm[p]) { resetArm[p] = 0; render(); } }, 3100);
+      } });
+    const btns = el("div", { class: "cgrid" });
+    if (setup) btns.append(
+      el("button", { class: P.setupDone ? "" : "primary", text: P.setupDone ? "Set up ✓" : "Setup", disabled: P.setupDone ? "" : false,
+        title: "Shuffle deck and token stack, draw 4, reveal 3 setup tokens", onclick: () => act({ type: "setup", ...extra }) }),
+      el("button", { class: P.setupDone && !P.ready ? "primary" : "", text: P.ready ? "Not ready" : "Ready", disabled: P.setupDone ? false : "",
+        onclick: () => act({ type: "ready", ...extra }) }));
+    btns.append(reset);
+    return el("section", { class: "cbox" }, el("h3", {}, document.createTextNode(title), el("span", { class: `status${P.ready ? " ok" : ""}`, text: setup ? sideStatus(P) : "" })), btns);
+  }
+
+  function renderControls(V, me) {
+    const meP = V.players[me], O = V.players[opp(me)];
+    const setup = V.phase === "setup", solo = ctl.mode === "solo";
+    const myTurn = V.turn === me || solo;
+    $("#turnbox").replaceChildren(
+      el("div", { class: "who", text: setup ? "Setting up" : `${V.players[V.turn].name}'s turn` }),
+      el("div", { class: "sub2", text: setup ? "Both players: Setup, then Ready" : `Turn ${V.turnNo}${solo ? ` · acting as ${meP.name}` : (V.turn === me ? " · your turn" : "")}` }),
+      el("div", { class: "cgrid" },
+        el("button", { class: "fieldtag wide", text: `Arcana Field: ${V.field}`, title: "Arcana Field state. Click to switch Radiant / Dormant", onclick: () => act({ type: "field" }) }),
+        el("button", { class: "ghost wide", text: "Coin flip", onclick: () => act({ type: "coin" }) })));
+    const box = $("#ctrlbox"); box.replaceChildren();
+    if (!setup) box.append(el("section", { class: "cbox" }, el("h3", { text: "Turn" }), el("div", { class: "cgrid" },
+      el("button", { class: "primary wide", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) }),
       el("button", { text: "Draw 1", onclick: () => act({ type: "draw", n: 1 }) }),
       el("button", { text: "Stand all", onclick: () => act({ type: "standAll" }) }),
-      el("button", { text: `Activate win (${meP.stashCount})`, disabled: V.altarUsed[me] ? "" : false, title: "Uses your Fragment Recall Altar use this turn", onclick: () => act({ type: "activateWin" }) }),
-      el("button", { text: meP.handRevealed ? "Hide hand" : "Reveal hand", onclick: () => act({ type: "revealHand" }) }),
-      el("button", { class: "ghost", text: "Coin flip", onclick: () => act({ type: "coin" }) }),
-      ctl.mode === "solo" ? el("button", { class: "ghost", text: `Switch to ${V.players[opp(me)].name}`, onclick: () => { ctl.soloActing = opp(ctl.soloActing); publish(); } }) : null);
-    c.append(el("div", { class: "cleft" }, info, field), fra, el("div", { class: "cright" }, ctrls));
+      el("button", { class: "wide", text: `Activate win (${meP.stashCount})`, disabled: V.altarUsed[me] ? "" : false, title: "Uses your Fragment Recall Altar use this turn", onclick: () => act({ type: "activateWin" }) }),
+      el("button", { class: "wide", text: meP.handRevealed ? "Hide hand" : "Reveal hand", onclick: () => act({ type: "revealHand" }) }))));
+    if (setup) box.append(el("p", { class: "hint small", text: "Setup shuffles your deck and token stack, draws 4 and reveals 3 setup tokens. Turn 1 starts when both players are Ready." }));
+    box.append(sideBox(V, me, solo ? `${meP.name}'s side` : "Your side"));
+    if (solo) box.append(sideBox(V, opp(me), `${O.name}'s side`));
+    else box.append(el("p", { class: "hint small oppstat", text: `${O.name}: ${setup ? sideStatus(O) : "playing"}` }));
+    if (solo) box.append(el("button", { class: "ghost wide", text: `Switch to ${O.name}`, onclick: () => { ctl.soloActing = opp(ctl.soloActing); publish(); } }));
   }
 
   function renderHands(V, me) {
@@ -637,6 +721,7 @@
   /* ---------- menus ---------- */
   function openMenu(e, title, items) {
     e.stopPropagation();
+    if (ctl.V && ctl.V.phase === "setup") { toast("The game hasn't begun yet: both players press Setup, then Ready."); return; }
     const m = $("#menu"); m.replaceChildren(el("div", { class: "mt", text: title }));
     for (const it of items) {
       if (!it) continue;
@@ -814,6 +899,7 @@
     document.addEventListener("click", (e) => { if (!$("#menu").contains(e.target)) closeMenu(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeMenu(); if (ui.pick) { ui.pick = null; render(); } else if (overlayKind && overlayKind.t === "abyss") closeOverlay(); } });
     $("#overlay").addEventListener("click", (e) => { if (e.target.id === "overlay" && overlayKind && overlayKind.t === "abyss") closeOverlay(); });
+    window.addEventListener("resize", fitBoard);
     window.addEventListener("beforeunload", (e) => { if (ctl.S || ctl.V) { e.preventDefault(); e.returnValue = ""; } });
   }
 

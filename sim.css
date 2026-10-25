@@ -24,9 +24,24 @@
 details summary { cursor: pointer; font-size: 13px; color: var(--muted); margin: 6px 0; }
 
 /* game layout */
-.game { display: grid; grid-template-columns: 1fr 280px; gap: 12px; padding: 10px 12px; }
-.board-wrap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.sidepanel { display: flex; flex-direction: column; gap: 10px; position: sticky; top: 74px; height: calc(100vh - 92px); min-height: 0; }
+body.in-game { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+body.in-game .topbar { flex: none; }
+.game { flex: 1; min-height: 0; display: grid; grid-template-columns: 196px minmax(0, 1fr) 270px; gap: 10px; padding: 8px 10px; }
+.board-wrap { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; min-width: 0; min-height: 0; overflow: hidden; }
+.sidepanel { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.controls { display: flex; flex-direction: column; gap: 10px; overflow: auto; min-height: 0; padding: 10px; }
+.controls .cbox { border-top: 1px solid var(--line); padding-top: 8px; }
+.controls h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px; display: flex; justify-content: space-between; gap: 6px; }
+.controls h3 .status { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.controls h3 .status.ok { color: var(--accent-ink); }
+.cgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.cgrid button { font-size: 12.5px; padding: 6px 6px; }
+.cgrid .wide, .controls > #ctrlbox > .wide { grid-column: 1 / -1; width: 100%; }
+#ctrlbox { display: flex; flex-direction: column; gap: 10px; }
+.danger-ghost { grid-column: 1 / -1; background: none; border: 1px solid var(--line); color: var(--muted); }
+.danger-ghost:hover { border-color: var(--danger); color: var(--danger); }
+.danger-ghost.armed { border-color: var(--danger); color: #fff; background: var(--danger); }
+.oppstat { margin: 0; }
 .logbox, .chatbox { display: flex; flex-direction: column; min-height: 0; }
 .logbox { flex: 3; }
 .chatbox { flex: 2; }
@@ -44,15 +59,15 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); margin:
 .say { display: flex; gap: 6px; margin-top: 8px; }
 .say input { flex: 1; min-width: 0; }
 
-.banner { background: var(--accent); color: var(--on-accent); border-radius: 8px; padding: 8px 12px; font-weight: 600; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.banner { background: var(--accent); color: var(--on-accent); border-radius: 8px; padding: 8px 10px; font-weight: 600; font-size: 13px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; box-shadow: var(--glow); }
 .banner button { background: rgba(0,0,0,.15); border-color: transparent; color: inherit; }
 
 /* board side grid */
-:root { --cw: 74px; --ch: 103px; --hx: 62px; }
+:root { --ch: 100px; --cw: calc(var(--ch) * .716); --hx: calc(var(--cw) * .84); }
 .side {
   display: grid; justify-content: center; gap: 4px 6px;
   grid-template-columns: var(--cw) repeat(5, var(--cw)) var(--cw);
-  grid-template-rows: calc(var(--hx) * 1.16) repeat(4, calc(var(--ch) / 2));
+  grid-template-rows: calc(var(--hx) * 1.155 + 13px) repeat(4, calc(var(--ch) / 2));
   padding: 6px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line);
 }
 .side.me {
@@ -64,7 +79,7 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); margin:
     "sta s1B . s3B . s5B dek";
 }
 .side.opp {
-  grid-template-rows: repeat(4, calc(var(--ch) / 2)) calc(var(--hx) * 1.16);
+  grid-template-rows: repeat(4, calc(var(--ch) / 2)) calc(var(--hx) * 1.155 + 13px);
   grid-template-areas:
     "dek s5B . s3B . s1B sta"
     "dek s5B s4M s3B s2M s1B sta"
@@ -103,25 +118,26 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); margin:
 .active-ring { outline: 3px solid var(--accent-2); outline-offset: 1px; border-radius: 5px; }
 .win-glow { box-shadow: 0 0 0 2px var(--accent), 0 0 14px var(--accent); border-radius: 6px; }
 
-/* centre */
-.centre { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 6px 4px 18px; }
-.centre .cleft { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.centre .cright { display: flex; justify-content: flex-start; }
-.fra { width: calc(var(--cw) + 10px); height: calc(var(--ch) + 8px); border: 2px dashed var(--accent-2); border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; }
+/* centre: the shared Fragment Recall Altar */
+.centre { display: flex; align-items: center; justify-content: center; gap: 10px; height: calc(var(--ch) * .8 + 12px); flex: none; }
+.fra { width: calc(var(--cw) * .8 + 10px); height: calc(var(--ch) * .8 + 8px); border: 2px dashed var(--accent-2); border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; }
+.fra .obj img { width: calc(var(--cw) * .8); height: calc(var(--ch) * .8); }
 .fra.used::after { content: "used"; position: absolute; top: -9px; right: -6px; font-size: 10px; background: var(--accent-2); color: #fff; padding: 0 5px; border-radius: 999px; }
-.fra .lbl { position: absolute; bottom: -15px; font-size: 10px; color: var(--muted); white-space: nowrap; }
-.turninfo { text-align: right; min-width: 150px; }
+.fra-lbl { font-size: 11px; color: var(--muted); max-width: 90px; line-height: 1.2; }
 .turninfo .who { font-weight: 700; color: var(--accent-ink); }
 .turninfo .sub2 { font-size: 12px; color: var(--muted); }
-.ctrls { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-start; }
-.ctrls button { font-size: 13px; padding: 5px 10px; }
-.fieldtag { font-size: 12px; border-radius: 999px; padding: 3px 10px; border: 1px solid var(--accent-2); color: var(--accent-2); cursor: pointer; background: none; }
+.fieldtag { font-size: 12px; border-radius: 999px; padding: 3px 8px; border: 1px solid var(--accent-2); color: var(--accent-2); cursor: pointer; background: none; }
 
 /* hands */
-.hand { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 34px; align-items: center; }
-.my-hand .obj img { width: 84px; height: 117px; }
-.opp-hand .back { width: 30px; height: 42px; border-radius: 3px; }
-.opp-hand .obj img { width: 56px; height: 78px; }
+.side { flex: none; }
+.hand { display: flex; gap: 6px; justify-content: safe center; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; align-items: center; flex: none; }
+.my-hand { height: calc(var(--ch) + 14px); }
+.opp-hand { height: calc(var(--ch) * .6 + 6px); }
+.hand .obj { flex: none; }
+.my-hand .obj img { width: var(--cw); height: var(--ch); }
+.opp-hand .back { width: calc(var(--cw) * .42); height: calc(var(--ch) * .42); border-radius: 3px; flex: none; }
+.opp-hand .obj img { width: calc(var(--cw) * .6); height: calc(var(--ch) * .6); }
+.hand .lbl { flex: none; }
 .hand .lbl { font-size: 12px; color: var(--muted); margin-right: 6px; }
 
 /* popup menu */
@@ -143,18 +159,14 @@ details summary { cursor: pointer; font-size: 13px; color: var(--muted); margin:
 .ocard .btns { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
 .ocard .btns button { font-size: 11px; padding: 2px 6px; }
 
-@media (max-width: 1300px) { :root { --cw: 62px; --ch: 86px; --hx: 54px; } }
-@media (max-width: 1100px) {
-  :root { --cw: 54px; --ch: 75px; --hx: 48px; }
+@media (max-width: 1000px) {
+  body.in-game { height: auto; overflow: auto; display: block; }
   .game { grid-template-columns: 1fr; }
-  .sidepanel { position: static; height: auto; }
+  .controls { overflow: visible; }
+  .board-wrap { overflow: visible; }
+  .sidepanel { height: auto; }
   .logbox { max-height: 260px; } .chatbox { max-height: 240px; }
 }
-@media (max-width: 820px) {
-  .lobby { grid-template-columns: 1fr; padding: 12px 16px; }
-  :root { --cw: 42px; --ch: 58px; --hx: 40px; }
-  .my-hand .obj img { width: 64px; height: 89px; }
-}
+@media (max-width: 820px) { .lobby { grid-template-columns: 1fr; padding: 12px 16px; } }
 
 .zone.pilezone { border-style: solid; border-color: transparent; }
-@media (max-width: 820px) { .centre { grid-template-columns: 1fr; justify-items: center; } .centre .cleft { align-items: center; } .turninfo { text-align: center; } .ctrls { justify-content: center; } }

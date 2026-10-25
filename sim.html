@@ -6,7 +6,7 @@
 <title>RoVA Playtest</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="stylesheet" href="style.css?v=8">
-<link rel="stylesheet" href="sim.css?v=3">
+<link rel="stylesheet" href="sim.css?v=4">
 </head>
 <body class="sim">
 <header class="topbar">
@@ -64,8 +64,12 @@
 
 <!-- GAME -->
 <main id="game" class="game" hidden>
-  <div class="board-wrap">
+  <aside class="controls panel">
+    <div id="turnbox" class="turninfo"></div>
     <div id="banner" class="banner" hidden></div>
+    <div id="ctrlbox"></div>
+  </aside>
+  <div class="board-wrap">
     <div id="opp-hand" class="hand opp-hand"></div>
     <div id="side-opp" class="side opp"></div>
     <div id="centre" class="centre"></div>
@@ -91,6 +95,6 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/peerjs-1.5.5.min.js"></script>
-<script src="sim.js?v=3"></script>
+<script src="sim.js?v=4"></script>
 </body>
 </html>
