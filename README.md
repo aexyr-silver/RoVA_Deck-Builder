@@ -278,11 +278,11 @@ What the helpers **don't** do: work out card effects, count damage, or check whe
 
 ### Updating the cards
 
-Replace `data/cards.json` and the image folders (both the white and the `-dark` folders) with a new export, then commit. The site updates within a few minutes. If a browser still shows the old version, refresh with **Ctrl + Shift + R** (or **Cmd + Shift + R** on a Mac).
+Replace `data/cards.json` and the image folders (both the white and the `-dark` folders) with a new export, then commit. The site updates within a few minutes. The card data is checked for changes on every load, so a normal refresh is enough. Only if a page itself looks outdated, refresh with **Ctrl + Shift + R** (or **Cmd + Shift + R** on a Mac).
 
 ### Changing the preset decks
 
-Edit `data/presets.json`. Each preset has a `name` (shown in the lobby menu) and a `list` (a decklist in the format above, with each line break written as `\n`). The easiest way to make one is to build the deck in the deck builder, export it, and paste the text in.
+Edit `data/presets.json`. Each preset has a `name` (shown in the lobby menu) and a `list` (a decklist in the format above, with each line break written as `\n`). The easiest way to make one is to build the deck in the deck builder, export it, and paste the text in. After you commit, a normal refresh of the playtest page shows the new presets (GitHub Pages can take a minute or two to publish). If a player had picked a preset, they get its updated list automatically; a pasted list is kept as they pasted it.
 
 ### Hosting on GitHub Pages
 

@@ -430,7 +430,7 @@
     });
   }
 
-  fetch("data/cards.json?v=10")
+  fetch("data/cards.json", { cache: "no-cache" })
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((data) => {
       DATA = data;

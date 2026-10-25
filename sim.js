@@ -643,12 +643,23 @@
     PRESETS.forEach((p, i) => sel.append(el("option", { value: String(i), text: p.name })));
     const ta = el("textarea", { rows: "10", placeholder: "Paste the decklist exported from the deck builder", "aria-label": "Decklist" });
     const sum = el("div", { class: "summary" });
+    // Remember WHICH preset was picked (not its text), so edits to presets.json show up on the next load.
+    // Only a pasted list is stored as text.
     const saved = store.get(`rova-sim-deck-${k}`);
-    if (saved) ta.value = saved; else if (PRESETS[k]) { sel.value = String(k); ta.value = PRESETS[k].list; }
+    let pick = store.get(`rova-sim-pick-${k}`);
+    if (!pick) {   // older visits stored the text only: match it to a preset by its header line
+      const head = (t) => (t || "").split("\n")[0].trim();
+      const hit = saved && PRESETS.find((p) => head(p.list) === head(saved));
+      pick = hit ? hit.name : saved ? "paste" : (PRESETS[k] || PRESETS[0] || {}).name || "paste";
+    }
+    const pi = PRESETS.findIndex((p) => p.name === pick);
+    if (pick !== "paste" && pi >= 0) { sel.value = String(pi); ta.value = PRESETS[pi].list; }
+    else { sel.value = "paste"; ta.value = saved || ""; }
     sel.addEventListener("change", () => { if (sel.value !== "paste") ta.value = PRESETS[+sel.value].list; update(); });
     ta.addEventListener("input", () => { sel.value = "paste"; update(); });
     function update() {
-      store.set(`rova-sim-deck-${k}`, ta.value);
+      if (sel.value === "paste") { store.set(`rova-sim-pick-${k}`, "paste"); store.set(`rova-sim-deck-${k}`, ta.value); }
+      else store.set(`rova-sim-pick-${k}`, PRESETS[+sel.value].name);
       if (!ta.value.trim()) { sum.textContent = "No deck yet."; sum.className = "summary bad"; return; }
       const d = parseDeck(ta.value);
       const zero = d.cards.filter((id) => REF[id].cost === 0).length;
@@ -1125,8 +1136,8 @@
   }
 
   Promise.all([
-    fetch("data/cards.json?v=10").then((r) => r.json()),
-    fetch("data/presets.json?v=2").then((r) => (r.ok ? r.json() : { presets: [] })).catch(() => ({ presets: [] })),
+    fetch("data/cards.json", { cache: "no-cache" }).then((r) => r.json()),
+    fetch("data/presets.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : { presets: [] })).catch(() => ({ presets: [] })),
   ]).then(([data, pre]) => {
     DATA = data; PRESETS = pre.presets || [];
     for (const c of data.cards) { c.kind = "card"; REF[c.id] = c; }
