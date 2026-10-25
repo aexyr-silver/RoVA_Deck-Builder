@@ -159,3 +159,6 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
 
 /* theme toggle */
 #btn-theme { min-width: 64px; font-size: 13px; }
+
+.btn-link { color: var(--accent-ink); text-decoration: none; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.btn-link:hover { border-color: var(--accent-2); }

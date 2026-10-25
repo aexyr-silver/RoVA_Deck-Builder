@@ -1,0 +1,833 @@
+/* RoVA Playtest simulator — sandbox with helpers.
+   The host's browser holds the game state; the guest sends actions and receives its own view. */
+(() => {
+  "use strict";
+
+  const SLOTS = ["1F", "1B", "2M", "3F", "3B", "4M", "5F", "5B"];
+  const QUARTER_SLOTS = ["2M", "3F", "3B", "4M"];
+  const SLOT_LABEL = { "1F": "Front", "1B": "Back", "2M": "Corner", "3F": "Front · Q", "3B": "Back · Q", "4M": "Corner", "5F": "Front", "5B": "Back" };
+  const ARCANA_ORDER = ["Blaze", "Frost", "Seal", "Static", "Flow", "Hidden", "Refract", "Chaos"];
+  const WIN_TARGET = 6;
+
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v;
+      else if (k === "text") n.textContent = v;
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k != null) n.append(k);
+    return n;
+  };
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* ignore */ } },
+  };
+
+  let DATA = null, PRESETS = [];
+  const REF = {};          // card/token id -> data
+  const BACKS = { card: "backs/card-back.png", token: "backs/token-back.png" };
+
+  /* =================================================================== */
+  /* Decklist parsing (same format as the deck builder)                  */
+  /* =================================================================== */
+  function parseDeck(text) {
+    const cardByName = {}, tokByName = {}, normalByValue = {};
+    for (const c of DATA.cards) cardByName[c.name.toLowerCase()] = c;
+    for (const t of DATA.tokens) { if (t.special) tokByName[t.name.toLowerCase()] = t; else normalByValue[t.value] = t; }
+    const matchCard = (rest) => {
+      const low = rest.toLowerCase(); let best = null;
+      for (const c of DATA.cards) {
+        const nm = c.name.toLowerCase();
+        if ((low === nm || low.startsWith(nm + " ")) && (!best || nm.length > best.name.length)) best = c;
+      }
+      return best;
+    };
+    const cards = [], tokens = [], unknown = [];
+    let name = "";
+    for (const raw of String(text || "").split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line || /^total\s*:/i.test(line) || line.startsWith("#")) continue;
+      const head = line.match(/^RoVA decklist\s*[—–-]\s*(.+)$/i);
+      if (head) { name = head[1].trim(); continue; }
+      let m, it = null, n = 0;
+      if ((m = line.match(/^(\d+)\s*[x×]?\s+(.+?)\s+Token\s+v\.?\s*(\d+)$/i))) {
+        n = +m[1]; const nm = m[2].trim();
+        it = /^void$/i.test(nm) ? normalByValue[+m[3]] : tokByName[nm.toLowerCase()];
+        if (!it) unknown.push(`${nm} Token v.${m[3]}`);
+      } else if ((m = line.match(/^(\d+)\s*[x×]?\s+(.+?)\s+Lv\.?\s*(\d+)$/i))) {
+        n = +m[1]; it = matchCard(m[2].trim()); if (!it) unknown.push(m[2].trim());
+      } else if ((m = line.match(/^(\d+)\s*[x×]?\s+(.+)$/i))) {
+        n = +m[1]; const nm = m[2].trim().toLowerCase(); const vt = nm.match(/^void token\s*(\d+)$/);
+        it = matchCard(m[2].trim()) || tokByName[nm] || (vt && normalByValue[+vt[1]]);
+        if (!it) unknown.push(m[2].trim());
+      }
+      if (it) for (let i = 0; i < n; i++) (it.kind === "card" ? cards : tokens).push(it.id);
+    }
+    return { name, cards, tokens, unknown };
+  }
+
+  /* =================================================================== */
+  /* Game engine                                                          */
+  /* =================================================================== */
+  const opp = (p) => 1 - p;
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+  function newGame(decks, names) {
+    const S = { started: true, turn: 0, turnNo: 1, first: 0, field: "Radiant", fra: null, altarUsed: [false, false],
+      activeAbyss: null, objects: {}, players: [], log: [], chat: [], seq: 0, cseq: 0, over: false };
+    let n = 0;
+    const mk = (kind, ref, owner) => { const iid = `o${++n}`; S.objects[iid] = { iid, kind, ref, owner, rested: false, dmg: 0, charge: 0, down: false }; return iid; };
+    for (let p = 0; p < 2; p++) {
+      S.players.push({ name: names[p] || `Player ${p + 1}`, deck: shuffle(decks[p].cards.map((id) => mk("card", id, p))),
+        hand: [], arena: Object.fromEntries(SLOTS.map((s) => [s, null])), abyss: [],
+        stack: shuffle(decks[p].tokens.map((id) => mk("token", id, p))), altar: [[], [], []], stash: [],
+        pendingGen: 0, handRevealed: false, peek: null });
+    }
+    log(S, "sys", "Game started. Decks and token stacks shuffled.");
+    for (let p = 0; p < 2; p++) drawCards(S, p, 4, true);
+    // Setup: reveal tokens to pick the first player
+    let decided = false;
+    for (let attempt = 0; attempt < 30 && !decided; attempt++) {
+      const vals = [[], []];
+      for (let p = 0; p < 2; p++) for (let s = 0; s < 3; s++) {
+        const P = S.players[p]; if (!P.stack.length) break;
+        const t = P.stack.shift(); P.altar[s].push(t); vals[p].push(REF[S.objects[t].ref].value);
+      }
+      for (let k = 1; k <= 3 && !decided; k++) {
+        const a = vals[0].slice(0, k).reduce((x, y) => x + y, 0), b = vals[1].slice(0, k).reduce((x, y) => x + y, 0);
+        if (a !== b) { S.first = a > b ? 0 : 1; decided = true;
+          log(S, "sys", `Setup tokens: ${S.players[0].name} ${vals[0].join("+")}, ${S.players[1].name} ${vals[1].join("+")}. ${S.players[S.first].name} goes first.`); }
+      }
+      if (!decided) {
+        for (let p = 0; p < 2; p++) { const P = S.players[p]; for (const sl of P.altar) P.stack.push(...sl.splice(0)); shuffle(P.stack); }
+        log(S, "sys", "Setup tokens tied. Shuffled and revealed again.");
+      }
+    }
+    if (!decided) { S.first = 0; log(S, "sys", "Setup kept tying; Player 1 goes first."); }
+    S.turn = S.first;
+    startTurn(S);
+    return S;
+  }
+
+  function log(S, kind, text) { S.log.push({ kind, text, n: ++S.seq, turn: S.turnNo || 1 }); if (S.log.length > 600) S.log.splice(0, S.log.length - 600); }
+  const nm = (S, iid) => { const o = S.objects[iid]; return o ? REF[o.ref].name : "?"; };
+  const pn = (S, p) => S.players[p].name;
+
+  function drawCards(S, p, k, quiet) {
+    const P = S.players[p]; let got = 0;
+    for (let i = 0; i < k; i++) { if (!P.deck.length) { log(S, "sys", `${pn(S, p)} can't draw: deck is empty.`); break; } P.hand.push(P.deck.shift()); got++; }
+    if (!quiet && got) log(S, "", `${pn(S, p)} draws ${got}.`);
+    return got;
+  }
+
+  function startTurn(S) {
+    const p = S.turn, P = S.players[p];
+    for (const s of SLOTS) if (P.arena[s]) S.objects[P.arena[s]].rested = false;
+    log(S, "turn", `Turn ${S.turnNo}: ${pn(S, p)}`);
+    drawCards(S, p, S.turnNo === 1 ? 1 : 2);
+  }
+
+  // where is an object?
+  function locate(S, iid) {
+    for (let p = 0; p < 2; p++) {
+      const P = S.players[p];
+      for (const z of ["deck", "hand", "abyss", "stack", "stash"]) { const i = P[z].indexOf(iid); if (i >= 0) return { p, zone: z, i }; }
+      for (const s of SLOTS) if (P.arena[s] === iid) return { p, zone: "arena", slot: s };
+      for (let k = 0; k < 3; k++) { const i = P.altar[k].indexOf(iid); if (i >= 0) return { p, zone: "altar", slot: k, i, top: i === P.altar[k].length - 1 }; }
+    }
+    if (S.fra && S.fra.iid === iid) return { p: S.fra.owner, zone: "fra" };
+    return null;
+  }
+  function detach(S, iid) {
+    const L = locate(S, iid); if (!L) return null;
+    const P = S.players[L.p];
+    if (L.zone === "arena") P.arena[L.slot] = null;
+    else if (L.zone === "altar") P.altar[L.slot].splice(L.i, 1);
+    else if (L.zone === "fra") S.fra = null;
+    else P[L.zone].splice(L.i, 1);
+    if (S.activeAbyss === iid) S.activeAbyss = null;
+    const o = S.objects[iid]; o.rested = false; o.dmg = 0; o.charge = 0;
+    for (const Q of S.players) if (Q.peek) Q.peek.iids = Q.peek.iids.filter((x) => x !== iid);
+    return L;
+  }
+
+  function sendToAbyss(S, iid) {
+    const o = S.objects[iid]; detach(S, iid);
+    o.down = false;
+    S.players[o.owner].abyss.unshift(iid);       // index 0 = newest
+    const ref = REF[o.ref];
+    if (ref.effect && /^abyss effect/i.test(ref.effect)) setActive(S, iid);
+  }
+  function setActive(S, iid) {
+    if (S.activeAbyss && S.activeAbyss !== iid) { S.objects[S.activeAbyss].down = true; log(S, "sys", `${nm(S, S.activeAbyss)} dissipates.`); }
+    S.activeAbyss = iid; S.objects[iid].down = false;
+    log(S, "sys", `${nm(S, iid)} is now the active card in the abyss.`);
+  }
+
+  function generate(S, p, slot) {
+    const P = S.players[p];
+    if (!P.stack.length) {
+      const back = []; for (const sl of P.altar) back.push(...sl.splice(0));
+      if (!back.length) { log(S, "sys", `${pn(S, p)} has no tokens in the stack or on the altar. By the rules, ${pn(S, p)} loses.`); return false; }
+      for (const t of back) S.objects[t].charge = 0;
+      P.stack.push(...shuffle(back));
+      log(S, "sys", `${pn(S, p)}'s token stack was empty: altar tokens shuffled into a new stack, then 3 generated.`);
+      for (let k = 0; k < 3 && P.stack.length; k++) P.altar[k].push(P.stack.shift());
+      if (!P.stack.length) return true;
+    }
+    const t = P.stack.shift(); S.objects[t].charge = 0; P.altar[slot].push(t);
+    log(S, "", `${pn(S, p)} generates ${nm(S, t)} on altar slot ${slot + 1}.`);
+    return true;
+  }
+
+  function apply(S, actor, a, solo) {
+    if (!a || typeof a !== "object") return;
+    const me = actor, P = S.players[me];
+    const own = (iid) => { const o = S.objects[iid]; return o && o.owner === me; };
+    const L = a.iid ? locate(S, a.iid) : null;
+    switch (a.type) {
+      case "say": if (a.text) { S.chat.push({ who: me, name: pn(S, me), text: String(a.text).slice(0, 300), n: ++S.cseq, at: Date.now() }); if (S.chat.length > 300) S.chat.splice(0, S.chat.length - 300); } break;
+      case "draw": drawCards(S, me, Math.max(1, Math.min(5, a.n | 0))); break;
+      case "shuffle": shuffle(P.deck); log(S, "", `${pn(S, me)} shuffles their deck.`); break;
+      case "standAll": for (const s of SLOTS) if (P.arena[s]) S.objects[P.arena[s]].rested = false; log(S, "", `${pn(S, me)} stands all their summons.`); break;
+      case "revealHand": P.handRevealed = !P.handRevealed; log(S, "", `${pn(S, me)} ${P.handRevealed ? "reveals" : "hides"} their hand.`); break;
+      case "field": S.field = S.field === "Radiant" ? "Dormant" : "Radiant"; log(S, "sys", `${pn(S, me)} sets the Arcana Field to ${S.field}.`); break;
+      case "coin": log(S, "sys", `${pn(S, me)} flips the marker coin: ${Math.random() < 0.5 ? "Radiant (heads)" : "Dormant (tails)"}.`); break;
+
+      case "summon": {
+        if (!L || L.zone !== "hand" || L.p !== me) return;
+        if (!SLOTS.includes(a.slot) || P.arena[a.slot]) return;
+        detach(S, a.iid); P.arena[a.slot] = a.iid;
+        log(S, "", `${pn(S, me)} summons ${nm(S, a.iid)} to ${slotName(a.slot)}.`); break;
+      }
+      case "toAltar": {
+        if (!L || L.zone !== "hand" || L.p !== me || S.fra) return;
+        detach(S, a.iid); S.fra = { iid: a.iid, owner: me }; S.altarUsed[me] = true;
+        log(S, "", `${pn(S, me)} places ${nm(S, a.iid)} on the Fragment Recall Altar.`); break;
+      }
+      case "move": {
+        if (!L || L.zone !== "arena") return;
+        const Q = S.players[L.p];
+        if (!SLOTS.includes(a.slot) || Q.arena[a.slot]) return;
+        Q.arena[L.slot] = null; Q.arena[a.slot] = a.iid;
+        log(S, "", `${pn(S, me)} moves ${nm(S, a.iid)}${L.p !== me ? ` (${pn(S, L.p)})` : ""} to ${slotName(a.slot)}.`); break;
+      }
+      case "rest": if (L && L.zone === "arena") { const o = S.objects[a.iid]; o.rested = !o.rested; log(S, "", `${nm(S, a.iid)} ${o.rested ? "rests" : "stands"}.`); } break;
+      case "dmg": if (L && L.zone === "arena") {
+        const o = S.objects[a.iid]; o.dmg = Math.max(0, o.dmg + (a.d | 0)); if (a.d === 0) o.dmg = 0;
+        log(S, "", `${nm(S, a.iid)} has ${o.dmg} damage.`); } break;
+      case "sacrifice": {
+        if (!L) return;
+        if (L.zone === "stash" && L.i !== S.players[L.p].stash.length - 1) return;   // stash: top only
+        if (L.zone === "altar" && !L.top) return;
+        const owner = S.objects[a.iid].owner, what = nm(S, a.iid);
+        const wasFra = L.zone === "fra";
+        sendToAbyss(S, a.iid);
+        S.players[opp(owner)].pendingGen++;
+        log(S, "", `${pn(S, me)} sacrifices ${what}${owner !== me ? ` (${pn(S, owner)})` : ""}${wasFra ? " from the Fragment Recall Altar" : ""}. ${pn(S, opp(owner))} generates a token.`);
+        break;
+      }
+      case "toHand": {
+        if (!L || ["deck", "stack", "stash", "altar"].includes(L.zone)) return;
+        const o = S.objects[a.iid]; if (o.kind !== "card") return;
+        detach(S, a.iid); o.down = false; S.players[o.owner].hand.push(a.iid);
+        log(S, "", `${nm(S, a.iid)} returns to ${pn(S, o.owner)}'s hand.`); break;
+      }
+      case "toDeck": {
+        if (!L || ["stack", "stash", "altar"].includes(L.zone)) return;
+        const o = S.objects[a.iid]; if (o.kind !== "card") return;
+        detach(S, a.iid); o.down = false;
+        if (a.where === "bottom") S.players[o.owner].deck.push(a.iid); else S.players[o.owner].deck.unshift(a.iid);
+        log(S, "", `A card goes to the ${a.where === "bottom" ? "bottom" : "top"} of ${pn(S, o.owner)}'s deck.`); break;
+      }
+      case "abyssActive": if (L && L.zone === "abyss" && !S.objects[a.iid].down) setActive(S, a.iid); break;
+      case "dissipate": if (L && L.zone === "abyss") { S.objects[a.iid].down = true; if (S.activeAbyss === a.iid) S.activeAbyss = null; log(S, "", `${pn(S, me)} dissipates ${nm(S, a.iid)}.`); } break;
+      case "abyssInactive": if (S.activeAbyss === a.iid) { S.activeAbyss = null; log(S, "", `${nm(S, a.iid)} is no longer active (nothing is active).`); } break;
+
+      case "generate": {
+        const p = a.player === 0 || a.player === 1 ? a.player : me;
+        if (!(a.slot >= 0 && a.slot < 3)) return;
+        if (generate(S, p, a.slot) && a.pending && S.players[p].pendingGen > 0) S.players[p].pendingGen--;
+        break;
+      }
+      case "skipGen": { const p = a.player === 0 || a.player === 1 ? a.player : me; if (S.players[p].pendingGen > 0) { S.players[p].pendingGen--; log(S, "", `${pn(S, me)} skips one token generation for ${pn(S, p)}.`); } break; }
+      case "charge": if (L && L.zone === "altar" && L.top) {
+        const o = S.objects[a.iid]; o.charge = Math.max(0, o.charge + (a.d | 0));
+        const v = REF[o.ref].value;
+        log(S, "", `${nm(S, a.iid)} on ${pn(S, L.p)}'s altar: ${o.charge}/${v} charged.`); } break;
+      case "claim": if (L && L.zone === "altar" && L.top) {
+        const o = S.objects[a.iid]; detach(S, a.iid); S.players[o.owner].stash.push(a.iid);
+        log(S, "", `${nm(S, a.iid)} is claimed into ${pn(S, o.owner)}'s stash (${S.players[o.owner].stash.length} token${S.players[o.owner].stash.length === 1 ? "" : "s"}).`); } break;
+      case "moveToken": if (L && L.zone === "altar" && L.top && a.slot >= 0 && a.slot < 3 && a.slot !== L.slot) {
+        const Q = S.players[L.p]; Q.altar[L.slot].pop(); Q.altar[a.slot].push(a.iid);
+        log(S, "", `${pn(S, me)} moves ${nm(S, a.iid)} to slot ${a.slot + 1} of ${pn(S, L.p)}'s altar.`); } break;
+      case "activateWin": {
+        S.altarUsed[me] = true;
+        const n = P.stash.length;
+        log(S, n >= WIN_TARGET ? "turn" : "sys", `${pn(S, me)} activates the win on the Fragment Recall Altar with ${n} stashed tokens${n >= WIN_TARGET ? ". WIN!" : ` (needs ${WIN_TARGET}).`}`);
+        if (n >= WIN_TARGET) S.over = true; break;
+      }
+      case "peek": {
+        const owner = a.owner === 0 || a.owner === 1 ? a.owner : me;
+        const k = Math.max(1, Math.min(10, a.n | 0));
+        P.peek = { owner, iids: S.players[owner].deck.slice(0, k) };
+        log(S, "", `${pn(S, me)} looks at the top ${P.peek.iids.length} of ${owner === me ? "their" : pn(S, owner) + "'s"} deck.`); break;
+      }
+      case "peekPut": {
+        if (!P.peek || !P.peek.iids.includes(a.iid)) return;
+        const Q = S.players[P.peek.owner]; const i = Q.deck.indexOf(a.iid); if (i < 0) return;
+        Q.deck.splice(i, 1);
+        if (a.where === "hand" && P.peek.owner === me) { P.hand.push(a.iid); P.peek.iids = P.peek.iids.filter((x) => x !== a.iid); log(S, "", `${pn(S, me)} puts a looked-at card into their hand.`); }
+        else if (a.where === "bottom") { Q.deck.push(a.iid); P.peek.iids = P.peek.iids.filter((x) => x !== a.iid); log(S, "", `${pn(S, me)} puts a looked-at card on the bottom.`); }
+        else { Q.deck.unshift(a.iid); P.peek.iids = [a.iid, ...P.peek.iids.filter((x) => x !== a.iid)]; }
+        break;
+      }
+      case "peekReveal": if (P.peek) log(S, "", `${pn(S, me)} reveals: ${P.peek.iids.map((x) => nm(S, x)).join(", ") || "nothing"}.`); break;
+      case "peekClose": P.peek = null; break;
+
+      case "endTurn": {
+        if (S.turn !== me && !solo) return;
+        const ender = S.turn;
+        for (const Q of S.players) for (const sl of Q.altar) for (const t of sl) S.objects[t].charge = 0;
+        for (const Q of S.players) for (const s of SLOTS) if (Q.arena[s]) S.objects[Q.arena[s]].dmg = 0;
+        log(S, "sys", "End of turn: altar charge reset, damage cleared.");
+        if (S.fra) { const f = S.fra; const what = nm(S, f.iid); sendToAbyss(S, f.iid); S.players[opp(f.owner)].pendingGen++;
+          log(S, "sys", `${what} is sacrificed from the Fragment Recall Altar. ${pn(S, opp(f.owner))} generates a token.`); }
+        log(S, "sys", "Reminder: sacrifice any summon left with 0 capacity.");
+        S.altarUsed = [false, false];
+        S.turn = opp(ender); S.turnNo++;
+        startTurn(S); break;
+      }
+      default: return;
+    }
+  }
+  function slotName(s) { return `column ${s[0]} ${s[1] === "F" ? "front" : s[1] === "B" ? "back" : "corner"}`; }
+
+  /* views: what one player may see */
+  function viewFor(S, p, all) {
+    const V = JSON.parse(JSON.stringify(S));
+    for (let q = 0; q < 2; q++) {
+      const Q = V.players[q];
+      const showHand = all || q === p || Q.handRevealed;
+      Q.handCount = Q.hand.length; if (!showHand) Q.hand = Q.hand.map(() => null);
+      Q.deckCount = Q.deck.length; Q.deck = [];
+      Q.stackCount = Q.stack.length; Q.stack = [];
+      Q.stashCount = Q.stash.length; Q.stash = Q.stash.length ? [Q.stash[Q.stash.length - 1]] : [];
+      if (q !== p && !all) Q.peek = null;
+    }
+    // keep only visible objects
+    const vis = new Set();
+    for (const Q of V.players) {
+      for (const x of Q.hand) if (x) vis.add(x);
+      for (const x of Q.abyss) vis.add(x);
+      for (const x of Q.stash) vis.add(x);
+      for (const s of SLOTS) if (Q.arena[s]) vis.add(Q.arena[s]);
+      for (const sl of Q.altar) for (const x of sl) vis.add(x);
+      if (Q.peek) for (const x of Q.peek.iids) vis.add(x);
+    }
+    if (V.fra) vis.add(V.fra.iid);
+    const objs = {}; for (const x of vis) objs[x] = V.objects[x]; V.objects = objs;
+    V.log = V.log.slice(-300); V.chat = (V.chat || []).slice(-150);
+    return V;
+  }
+
+  /* =================================================================== */
+  /* Controllers: solo, host, guest                                       */
+  /* =================================================================== */
+  const ctl = { mode: null, me: 0, S: null, V: null, peer: null, conn: null, guestDeck: null, guestName: "", soloActing: 0 };
+
+  function act(a) {
+    if (ctl.mode === "guest") { if (ctl.conn && ctl.conn.open) ctl.conn.send({ t: "action", a }); else toast("Not connected"); return; }
+    if (!ctl.S) return;
+    const actor = ctl.mode === "solo" ? ctl.soloActing : 0;
+    apply(ctl.S, actor, a, ctl.mode === "solo");
+    if (ctl.mode === "solo" && a.type === "endTurn") ctl.soloActing = ctl.S.turn;
+    publish();
+  }
+  function publish() {
+    if (ctl.mode === "host" && ctl.conn && ctl.conn.open) ctl.conn.send({ t: "view", v: viewFor(ctl.S, 1) });
+    const me = ctl.mode === "solo" ? ctl.soloActing : 0;
+    ctl.V = viewFor(ctl.S, me, ctl.mode === "solo"); ctl.me = me;
+    render();
+  }
+
+  function netStatus(text, cls) { const n = $("#net-status"); n.hidden = !text; n.textContent = text || ""; n.className = `pill ${cls || ""}`; }
+
+  function code6() { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s = ""; for (let i = 0; i < 6; i++) s += A[Math.floor(Math.random() * A.length)]; return s; }
+
+  function host() {
+    const deck = readDeck(0); if (!deck) return;
+    if (typeof Peer === "undefined") { toast("Online play couldn't load"); return; }
+    const code = code6();
+    ctl.mode = "host";
+    netStatus("Creating room…");
+    ctl.peer = new Peer(`rova-pt-${code}`);
+    ctl.peer.on("open", () => {
+      $("#host-box").hidden = false; $("#room-code").textContent = code; netStatus("Room open", "ok");
+      $("#btn-host").disabled = true;
+    });
+    ctl.peer.on("error", (e) => { netStatus("Connection problem", "bad"); toast(`Online error: ${e.type || e}`); });
+    ctl.peer.on("connection", (conn) => {
+      if (ctl.conn && ctl.conn.open) { conn.on("open", () => { conn.send({ t: "error", msg: "This room already has two players." }); setTimeout(() => conn.close(), 300); }); return; }
+      ctl.conn = conn;
+      conn.on("data", (msg) => {
+        if (!msg || typeof msg !== "object") return;
+        if (msg.t === "hello") {
+          const parsed = parseDeck(msg.deck);
+          if (!parsed.cards.length || !parsed.tokens.length) { conn.send({ t: "error", msg: "Your deck needs summons and tokens." }); return; }
+          ctl.guestDeck = parsed; ctl.guestName = String(msg.name || "Guest").slice(0, 24);
+          $("#host-wait").textContent = `${ctl.guestName} joined with ${parsed.cards.length} summons and ${parsed.tokens.length} tokens.`;
+          $("#btn-start-online").disabled = false;
+          if (ctl.S) publish();
+        } else if (msg.t === "action" && ctl.S) { apply(ctl.S, 1, msg.a, false); publish(); }
+      });
+      conn.on("close", () => { netStatus("Other player disconnected", "bad"); toast("The other player disconnected"); ctl.conn = null; });
+    });
+  }
+  function startOnline() {
+    const mine = readDeck(0); if (!mine || !ctl.guestDeck) return;
+    ctl.S = newGame([mine, ctl.guestDeck], [myName(), ctl.guestName]);
+    showGame(); publish();
+  }
+  function join() {
+    const deck = readDeck(0); if (!deck) return;
+    const code = $("#join-code").value.trim().toUpperCase();
+    if (code.length !== 6) { $("#join-msg").textContent = "Enter the 6-character room code."; return; }
+    if (typeof Peer === "undefined") { toast("Online play couldn't load"); return; }
+    ctl.mode = "guest"; ctl.me = 1;
+    netStatus("Connecting…");
+    ctl.peer = new Peer();
+    ctl.peer.on("open", () => {
+      const conn = ctl.peer.connect(`rova-pt-${code}`, { reliable: true });
+      ctl.conn = conn;
+      conn.on("open", () => {
+        netStatus("Connected", "ok"); $("#join-msg").textContent = "Connected. Waiting for the host to start…";
+        conn.send({ t: "hello", name: myName(), deck: deckText(0) });
+      });
+      conn.on("data", (msg) => {
+        if (!msg || typeof msg !== "object") return;
+        if (msg.t === "view") { ctl.V = msg.v; if ($("#game").hidden) showGame(); render(); }
+        else if (msg.t === "error") { $("#join-msg").textContent = msg.msg; toast(msg.msg); }
+      });
+      conn.on("close", () => { netStatus("Disconnected", "bad"); toast("Disconnected from the host"); });
+    });
+    ctl.peer.on("error", (e) => { netStatus("Couldn't connect", "bad"); $("#join-msg").textContent = e.type === "peer-unavailable" ? "No room with that code." : `Connection error: ${e.type || e}`; });
+  }
+  function solo() {
+    const a = readDeck(0), b = readDeck(1); if (!a || !b) return;
+    ctl.mode = "solo";
+    ctl.S = newGame([a, b], [myName(), "Player 2"]);
+    ctl.soloActing = ctl.S.turn;
+    showGame(); publish();
+  }
+  function showGame() { $("#lobby").hidden = true; $("#game").hidden = false; }
+
+  /* =================================================================== */
+  /* Lobby: deck pickers                                                  */
+  /* =================================================================== */
+  function myName() { return ($("#my-name").value.trim() || "Player 1").slice(0, 24); }
+  function buildPicker(k) {
+    const box = $(`#deck-pick-${k}`);
+    const sel = el("select", { "aria-label": "Deck" });
+    sel.append(el("option", { value: "paste", text: "Paste a decklist…" }));
+    PRESETS.forEach((p, i) => sel.append(el("option", { value: String(i), text: p.name })));
+    const ta = el("textarea", { rows: "10", placeholder: "Paste the decklist exported from the deck builder", "aria-label": "Decklist" });
+    const sum = el("div", { class: "summary" });
+    const saved = store.get(`rova-sim-deck-${k}`);
+    if (saved) ta.value = saved; else if (PRESETS[k]) { sel.value = String(k); ta.value = PRESETS[k].list; }
+    sel.addEventListener("change", () => { if (sel.value !== "paste") ta.value = PRESETS[+sel.value].list; update(); });
+    ta.addEventListener("input", () => { sel.value = "paste"; update(); });
+    function update() {
+      store.set(`rova-sim-deck-${k}`, ta.value);
+      if (!ta.value.trim()) { sum.textContent = "No deck yet."; sum.className = "summary bad"; return; }
+      const d = parseDeck(ta.value);
+      const zero = d.cards.filter((id) => REF[id].cost === 0).length;
+      sum.textContent = `${d.name ? d.name + ": " : ""}${d.cards.length} summons (${zero} at cost 0), ${d.tokens.length} tokens${d.unknown.length ? ` · not found: ${d.unknown.join(", ")}` : ""}`;
+      sum.className = `summary${d.unknown.length || !d.cards.length || !d.tokens.length ? " bad" : ""}`;
+    }
+    box.replaceChildren(sel, ta, sum); update();
+    box._ta = ta;
+  }
+  function deckText(k) { return $(`#deck-pick-${k}`)._ta.value; }
+  function readDeck(k) {
+    const d = parseDeck(deckText(k));
+    if (!d.cards.length || !d.tokens.length) { toast(k === 0 ? "Your deck needs summons and tokens" : "Player 2's deck needs summons and tokens"); return null; }
+    return d;
+  }
+
+  /* =================================================================== */
+  /* Rendering                                                            */
+  /* =================================================================== */
+  const ui = { pick: null };   // {kind:'slot'|'altar', side, filter, onPick, label}
+
+  function img(o, small) {
+    const ref = REF[o.ref];
+    if (o.kind === "token") return o.down ? BACKS.token : ref.image;
+    return o.down ? BACKS.card : ref.image;
+  }
+
+  function render() {
+    const V = ctl.V; if (!V) return;
+    const me = ctl.me, them = opp(me);
+    renderBanner(V, me);
+    renderSide($("#side-me"), V, me, true);
+    renderSide($("#side-opp"), V, them, false);
+    renderCentre(V, me);
+    renderHands(V, me);
+    renderLog(V);
+    renderPeek(V, me);
+  }
+
+  function renderBanner(V, me) {
+    const b = $("#banner"); b.replaceChildren();
+    const parts = [];
+    if (ui.pick) parts.push(el("span", { text: ui.pick.label }), el("button", { text: "Cancel", onclick: () => { ui.pick = null; render(); } }));
+    else {
+      for (const p of [me, opp(me)]) {
+        const n = V.players[p].pendingGen;
+        if (!n) continue;
+        const mine = p === me || ctl.mode === "solo";
+        parts.push(el("span", { text: `${V.players[p].name} has ${n} token${n > 1 ? "s" : ""} to generate${mine ? " — click a slot of that Void Altar" : ""}.` }));
+        parts.push(el("button", { text: "Choose slot", onclick: () => startPick({ kind: "altar", side: p, label: `Choose a slot on ${V.players[p].name}'s Void Altar for the new token`,
+          onPick: (slot) => act({ type: "generate", player: p, slot, pending: true }) }) }));
+        parts.push(el("button", { text: "Skip one", onclick: () => act({ type: "skipGen", player: p }) }));
+      }
+      if (V.over) parts.push(el("span", { text: "The game is won. Start a new one from the lobby (reload the page)." }));
+    }
+    b.hidden = !parts.length; b.append(...parts);
+  }
+
+  function zone(area, cls, label) { const z = el("div", { class: `zone ${cls || ""}`, style: `grid-area:${area}` }); if (label) z.append(el("span", { class: "lbl", text: label })); return z; }
+
+  function objNode(V, iid, extra) {
+    const o = V.objects[iid]; if (!o) return el("span");
+    const ref = REF[o.ref];
+    const n = el("span", { class: `obj${o.kind === "token" ? " tok" : ""}${o.rested ? " rested" : ""}${extra ? " " + extra : ""}`, title: o.down ? "Face down" : ref.name },
+      el("img", { src: img(o), alt: o.down ? "Face-down card" : ref.name, draggable: "false" }));
+    if (o.dmg) n.append(el("span", { class: "dmg", text: String(o.dmg) }));
+    if (o.kind === "token" && o.charge) n.append(el("span", { class: "chg", text: `${o.charge}/${ref.value}` }));
+    if (!o.down) attachPreview(n, ref);
+    return n;
+  }
+
+  function renderSide(root, V, p, mine) {
+    root.replaceChildren();
+    const P = V.players[p];
+    // Void Altar
+    const alt = zone("alt", "altar");
+    const wrap = el("div", { class: "altar-wrap" });
+    for (let k = 0; k < 3; k++) {
+      const sl = P.altar[k]; const top = sl[sl.length - 1];
+      const picking = ui.pick && ui.pick.kind === "altar" && ui.pick.side === p && (!ui.pick.filter || ui.pick.filter(k));
+      const slot = el("div", { class: `aslot${picking ? " pickable" : ""}`, title: `Altar slot ${k + 1}` });
+      if (top) slot.append(objNode(V, top));
+      slot.addEventListener("click", (e) => {
+        if (picking) { const f = ui.pick.onPick; ui.pick = null; f(k); return; }
+        if (top) menuAltarToken(e, V, p, top);
+      });
+      wrap.append(el("div", { class: "slotcol" }, slot, el("span", { class: "under", text: sl.length > 1 ? `+${sl.length - 1} below` : `slot ${k + 1}` })));
+    }
+    alt.append(wrap); root.append(alt);
+
+    // Arena
+    for (const s of SLOTS) {
+      const quarter = QUARTER_SLOTS.includes(s);
+      const z = zone(`s${s}`, quarter ? "quarter" : "", P.arena[s] ? null : SLOT_LABEL[s]);
+      const iid = P.arena[s];
+      const picking = ui.pick && ui.pick.kind === "slot" && ui.pick.side === p && !iid && (!ui.pick.filter || ui.pick.filter(s));
+      if (picking) z.classList.add("pickable");
+      if (iid) z.append(objNode(V, iid, V.activeAbyss === iid ? "active-ring" : ""));
+      z.addEventListener("click", (e) => {
+        if (picking) { const f = ui.pick.onPick; ui.pick = null; f(s); return; }
+        if (iid) menuArena(e, V, p, iid);
+      });
+      root.append(z);
+    }
+    // Token stack
+    const stk = zone("stk", "pilezone");
+    const sp = el("span", { class: `pile tokpile obj${P.stackCount ? "" : " empty"}` }, el("img", { class: "back", src: BACKS.token, alt: "Token stack" }), el("span", { class: "cnt", text: `Stack ${P.stackCount}` }));
+    sp.addEventListener("click", (e) => menuStack(e, V, p));
+    stk.append(sp); root.append(stk);
+    // Stash
+    const sta = zone("sta", "pilezone");
+    const topT = P.stash[0];
+    const stNode = topT ? objNode(V, topT, P.stashCount >= WIN_TARGET ? "win-glow" : "") : el("span", { class: "pile tokpile obj empty" }, el("img", { class: "back", src: BACKS.token, alt: "Empty stash" }));
+    stNode.classList.add("pile"); stNode.append(el("span", { class: "cnt", text: `Stash ${P.stashCount}/${WIN_TARGET}` }));
+    stNode.addEventListener("click", (e) => menuStash(e, V, p, topT));
+    sta.append(stNode); root.append(sta);
+    // Abyss
+    const aby = zone("aby", "pilezone");
+    const at = P.abyss[0];
+    const an = at ? objNode(V, at, V.activeAbyss === at ? "active-ring" : "") : el("span", { class: "pile obj empty" }, el("img", { class: "back", src: BACKS.card, alt: "Empty abyss" }));
+    an.classList.add("pile"); an.append(el("span", { class: "cnt", text: `Abyss ${P.abyss.length}` }));
+    an.addEventListener("click", () => openAbyss(p));
+    aby.append(an); root.append(aby);
+    // Deck
+    const dek = zone("dek", "pilezone");
+    const dn = el("span", { class: `pile obj${P.deckCount ? "" : " empty"}` }, el("img", { class: "back", src: BACKS.card, alt: "Deck" }), el("span", { class: "cnt", text: `Deck ${P.deckCount}` }));
+    dn.addEventListener("click", (e) => menuDeck(e, V, p));
+    dek.append(dn); root.append(dek);
+  }
+
+  function renderCentre(V, me) {
+    const c = $("#centre"); c.replaceChildren();
+    const meP = V.players[me];
+    const myTurn = V.turn === me || ctl.mode === "solo";
+    const fra = el("div", { class: `fra${V.altarUsed[V.turn] ? " used" : ""}`, title: "Fragment Recall Altar (shared)" });
+    if (V.fra) { const n = objNode(V, V.fra.iid); n.addEventListener("click", (e) => menuFra(e, V)); fra.append(n); }
+    fra.append(el("span", { class: "lbl", text: "Fragment Recall Altar" }));
+    const info = el("div", { class: "turninfo" },
+      el("div", { class: "who", text: `${V.players[V.turn].name}'s turn` }),
+      el("div", { class: "sub2", text: `Turn ${V.turnNo}${ctl.mode === "solo" ? ` · acting as ${meP.name}` : (V.turn === me ? " · your turn" : "")}` }));
+    const field = el("button", { class: "fieldtag", text: `Arcana Field: ${V.field}`, title: "Click to switch Radiant / Dormant", onclick: () => act({ type: "field" }) });
+    const ctrls = el("div", { class: "ctrls" },
+      el("button", { class: "primary", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) }),
+      el("button", { text: "Draw 1", onclick: () => act({ type: "draw", n: 1 }) }),
+      el("button", { text: "Stand all", onclick: () => act({ type: "standAll" }) }),
+      el("button", { text: `Activate win (${meP.stashCount})`, disabled: V.altarUsed[me] ? "" : false, title: "Uses your Fragment Recall Altar use this turn", onclick: () => act({ type: "activateWin" }) }),
+      el("button", { text: meP.handRevealed ? "Hide hand" : "Reveal hand", onclick: () => act({ type: "revealHand" }) }),
+      el("button", { class: "ghost", text: "Coin flip", onclick: () => act({ type: "coin" }) }),
+      ctl.mode === "solo" ? el("button", { class: "ghost", text: `Switch to ${V.players[opp(me)].name}`, onclick: () => { ctl.soloActing = opp(ctl.soloActing); publish(); } }) : null);
+    c.append(el("div", { class: "cleft" }, info, field), fra, el("div", { class: "cright" }, ctrls));
+  }
+
+  function renderHands(V, me) {
+    const mh = $("#my-hand"), oh = $("#opp-hand");
+    mh.replaceChildren(el("span", { class: "lbl", text: `${V.players[me].name}'s hand (${V.players[me].handCount})` }));
+    for (const iid of V.players[me].hand) {
+      const n = objNode(V, iid); n.addEventListener("click", (e) => menuHand(e, V, me, iid)); mh.append(n);
+    }
+    const O = V.players[opp(me)];
+    oh.replaceChildren(el("span", { class: "lbl", text: `${O.name}'s hand (${O.handCount})${O.handRevealed ? " · revealed" : ""}` }));
+    for (const iid of O.hand) {
+      if (iid) { const n = objNode(V, iid); if (ctl.mode === "solo") n.addEventListener("click", (e) => menuHand(e, V, opp(me), iid)); oh.append(n); }
+      else oh.append(el("img", { class: "back", src: BACKS.card, alt: "Card" }));
+    }
+  }
+
+  let lastLogSeq = 0, lastChatSeq = 0, seenChat = 0;
+  function renderLog(V) {
+    const ol = $("#log"); ol.replaceChildren();
+    let curTurn = null;
+    for (const l of V.log) {
+      if (l.kind === "turn") { ol.append(el("li", { class: "turn", text: l.text })); curTurn = l.turn; continue; }
+      ol.append(el("li", { class: l.kind || "" }, el("span", { class: "step", text: `T${l.turn}·${l.n}` }), document.createTextNode(l.text)));
+    }
+    const newest = V.log.length ? V.log[V.log.length - 1].n : 0;
+    if (newest !== lastLogSeq) { ol.scrollTop = ol.scrollHeight; lastLogSeq = newest; }
+    // chat
+    const cl = $("#chat"); cl.replaceChildren();
+    for (const m of V.chat || []) {
+      const mine = m.who === ctl.me && ctl.mode !== "solo";
+      const t = new Date(m.at); const hh = String(t.getHours()).padStart(2, "0"), mm = String(t.getMinutes()).padStart(2, "0");
+      cl.append(el("li", { class: `msg${mine ? " mine" : ""} p${m.who}` },
+        el("span", { class: "meta", text: `${m.name} · ${hh}:${mm}` }), el("span", { class: "bubble", text: m.text })));
+    }
+    const cNewest = V.chat && V.chat.length ? V.chat[V.chat.length - 1].n : 0;
+    if (cNewest !== lastChatSeq) {
+      cl.scrollTop = cl.scrollHeight; lastChatSeq = cNewest;
+      const last = V.chat[V.chat.length - 1];
+      if (last && last.who !== ctl.me && ctl.mode !== "solo" && document.activeElement !== $("#say")) toast(`${last.name}: ${last.text.slice(0, 60)}`);
+    }
+  }
+
+  /* ---------- menus ---------- */
+  function openMenu(e, title, items) {
+    e.stopPropagation();
+    const m = $("#menu"); m.replaceChildren(el("div", { class: "mt", text: title }));
+    for (const it of items) {
+      if (!it) continue;
+      if (Array.isArray(it[0])) { const r = el("div", { class: "rowb" }); for (const [t, f] of it) r.append(el("button", { text: t, onclick: () => { closeMenu(); f(); } })); m.append(r); }
+      else m.append(el("button", { text: it[0], onclick: () => { closeMenu(); it[1](); } }));
+    }
+    m.hidden = false;
+    const r = m.getBoundingClientRect();
+    let x = e.clientX + 6, y = e.clientY + 6;
+    if (x + r.width > innerWidth - 8) x = innerWidth - r.width - 8;
+    if (y + r.height > innerHeight - 8) y = innerHeight - r.height - 8;
+    m.style.left = Math.max(8, x) + "px"; m.style.top = Math.max(8, y) + "px";
+  }
+  function closeMenu() { $("#menu").hidden = true; }
+  function startPick(p) { ui.pick = p; closeMenu(); render(); }
+
+  function menuHand(e, V, p, iid) {
+    const ref = REF[V.objects[iid].ref];
+    const items = [];
+    if (ref.cardType === "Fragment") items.push(["Place on the Fragment Recall Altar", () => act({ type: "toAltar", iid })]);
+    else items.push(["Summon to a slot…", () => startPick({ kind: "slot", side: p, label: `Choose an empty slot for ${ref.name}`,
+      filter: ref.cardType === "Quarter" ? (s) => QUARTER_SLOTS.includes(s) : null, onPick: (slot) => act({ type: "summon", iid, slot }) })]);
+    items.push(["Sacrifice (e.g. to pay a cost)", () => act({ type: "sacrifice", iid })]);
+    items.push([["Deck top", () => act({ type: "toDeck", iid, where: "top" })], ["Deck bottom", () => act({ type: "toDeck", iid, where: "bottom" })]]);
+    openMenu(e, ref.name, items);
+  }
+  function menuArena(e, V, p, iid) {
+    const o = V.objects[iid], ref = REF[o.ref];
+    openMenu(e, `${ref.name}${o.dmg ? ` · ${o.dmg} damage` : ""}`, [
+      [o.rested ? "Stand" : "Rest", () => act({ type: "rest", iid })],
+      [["Damage +1", () => act({ type: "dmg", iid, d: 1 })], ["−1", () => act({ type: "dmg", iid, d: -1 })], ["Clear", () => act({ type: "dmg", iid, d: 0 })]],
+      ["Move to another slot…", () => startPick({ kind: "slot", side: p, label: `Choose an empty slot for ${ref.name}`,
+        filter: ref.cardType === "Quarter" ? (s) => QUARTER_SLOTS.includes(s) : null, onPick: (slot) => act({ type: "move", iid, slot }) })],
+      ["Sacrifice", () => act({ type: "sacrifice", iid })],
+      ["Return to hand", () => act({ type: "toHand", iid })],
+      [["Deck top", () => act({ type: "toDeck", iid, where: "top" })], ["Deck bottom", () => act({ type: "toDeck", iid, where: "bottom" })]],
+    ]);
+  }
+  function menuFra(e, V) {
+    const iid = V.fra.iid, ref = REF[V.objects[iid].ref];
+    openMenu(e, `${ref.name} · Fragment Recall Altar`, [
+      ["Sacrifice now (attacked or effect ended)", () => act({ type: "sacrifice", iid })],
+      ["Return to hand", () => act({ type: "toHand", iid })],
+    ]);
+  }
+  function menuAltarToken(e, V, p, iid) {
+    const o = V.objects[iid], ref = REF[o.ref];
+    openMenu(e, `${ref.name} · ${o.charge}/${ref.value} charged`, [
+      [["+1", () => act({ type: "charge", iid, d: 1 })], ["+2", () => act({ type: "charge", iid, d: 2 })], ["+3", () => act({ type: "charge", iid, d: 3 })], ["+5", () => act({ type: "charge", iid, d: 5 })]],
+      [["+7", () => act({ type: "charge", iid, d: 7 })], ["−1", () => act({ type: "charge", iid, d: -1 })], ["Reset", () => act({ type: "charge", iid, d: -999 })]],
+      [`Claim into ${V.players[p].name}'s stash`, () => act({ type: "claim", iid })],
+      ["Move to another slot…", () => startPick({ kind: "altar", side: p, filter: (k) => V.players[p].altar[k][V.players[p].altar[k].length - 1] !== iid,
+        label: `Choose a slot on ${V.players[p].name}'s Void Altar`, onPick: (slot) => act({ type: "moveToken", iid, slot }) })],
+      ["Sacrifice", () => act({ type: "sacrifice", iid })],
+    ]);
+  }
+  function menuStack(e, V, p) {
+    openMenu(e, `${V.players[p].name}'s token stack · ${V.players[p].stackCount}`, [
+      ["Generate a token to a slot…", () => startPick({ kind: "altar", side: p, label: `Choose a slot on ${V.players[p].name}'s Void Altar`, onPick: (slot) => act({ type: "generate", player: p, slot }) })],
+    ]);
+  }
+  function menuStash(e, V, p, top) {
+    const P = V.players[p];
+    openMenu(e, `${P.name}'s stash · ${P.stashCount} tokens${top ? ` · top: ${REF[V.objects[top].ref].name}` : ""}`, [
+      top ? ["Sacrifice the top token", () => act({ type: "sacrifice", iid: top })] : ["Empty", () => {}],
+    ]);
+  }
+  function menuDeck(e, V, p) {
+    const mine = p === ctl.me || ctl.mode === "solo";
+    const items = [];
+    if (mine) items.push([["Draw 1", () => act({ type: "draw", n: 1 })], ["Draw 2", () => act({ type: "draw", n: 2 })]]);
+    items.push([["Look at top 1", () => act({ type: "peek", owner: p, n: 1 })], ["2", () => act({ type: "peek", owner: p, n: 2 })], ["3", () => act({ type: "peek", owner: p, n: 3 })], ["4", () => act({ type: "peek", owner: p, n: 4 })]]);
+    if (mine) items.push(["Shuffle", () => act({ type: "shuffle" })]);
+    openMenu(e, `${V.players[p].name}'s deck · ${V.players[p].deckCount} cards`, items);
+  }
+
+  /* ---------- overlays: abyss and peek ---------- */
+  let overlayKind = null;
+  function openAbyss(p) { overlayKind = { t: "abyss", p }; drawOverlay(); }
+  function closeOverlay() { overlayKind = null; $("#overlay").hidden = true; }
+  function drawOverlay() {
+    const V = ctl.V; if (!overlayKind || !V) return;
+    const box = $("#overlay-box"); box.replaceChildren();
+    if (overlayKind.t === "abyss") {
+      const P = V.players[overlayKind.p];
+      box.append(el("h2", { text: `${P.name}'s Void Abyss (${P.abyss.length})` }),
+        el("p", { class: "hint", text: "Newest first. Only one card or token across both Abysses can be active; a dissipated (face-down) card never turns face up again." }));
+      const g = el("div", { class: "ogrid" });
+      for (const iid of P.abyss) {
+        const o = V.objects[iid], ref = REF[o.ref];
+        const active = V.activeAbyss === iid;
+        const btns = el("div", { class: "btns" });
+        if (!o.down) {
+          btns.append(active ? el("button", { text: "Deactivate", onclick: () => act({ type: "abyssInactive", iid }) }) : el("button", { text: "Make active", onclick: () => act({ type: "abyssActive", iid }) }),
+            el("button", { text: "Dissipate", onclick: () => act({ type: "dissipate", iid }) }));
+          if (o.kind === "card") btns.append(el("button", { text: "To hand", onclick: () => act({ type: "toHand", iid }) }), el("button", { text: "Deck top", onclick: () => act({ type: "toDeck", iid, where: "top" }) }));
+        }
+        const card = el("div", { class: `ocard${o.down ? " down" : ""}` }, el("img", { src: img(o), alt: ref.name, class: active ? "active-ring" : "" }),
+          el("span", { class: "hint", text: `${o.down ? "Dissipated" : ref.name}${active ? " · ACTIVE" : ""}` }), btns);
+        if (!o.down) attachPreview(card.querySelector("img"), ref);
+        g.append(card);
+      }
+      if (!P.abyss.length) g.append(el("p", { class: "hint", text: "Empty." }));
+      box.append(g, el("div", { class: "dlg-actions" }, el("button", { text: "Close", onclick: closeOverlay })));
+    }
+    $("#overlay").hidden = false;
+  }
+  function renderPeek(V, me) {
+    const pk = V.players[me].peek;
+    if (overlayKind && overlayKind.t === "abyss") { drawOverlay(); return; }
+    if (!pk) { if (overlayKind && overlayKind.t === "peek") closeOverlay(); return; }
+    overlayKind = { t: "peek" };
+    const box = $("#overlay-box"); box.replaceChildren();
+    const ownerName = V.players[pk.owner].name;
+    box.append(el("h2", { text: `Top of ${pk.owner === me ? "your" : ownerName + "'s"} deck` }),
+      el("p", { class: "hint", text: "Leftmost is the top. \"Top\" moves a card to the very top. Only you can see these unless you reveal them." }));
+    const g = el("div", { class: "ogrid" });
+    for (const iid of pk.iids) {
+      const o = V.objects[iid]; if (!o) continue; const ref = REF[o.ref];
+      const btns = el("div", { class: "btns" },
+        el("button", { text: "Top", onclick: () => act({ type: "peekPut", iid, where: "top" }) }),
+        el("button", { text: "Bottom", onclick: () => act({ type: "peekPut", iid, where: "bottom" }) }),
+        pk.owner === me ? el("button", { text: "To hand", onclick: () => act({ type: "peekPut", iid, where: "hand" }) }) : null);
+      const card = el("div", { class: "ocard" }, el("img", { src: ref.image, alt: ref.name }), el("span", { class: "hint", text: ref.name }), btns);
+      attachPreview(card.querySelector("img"), ref);
+      g.append(card);
+    }
+    box.append(g, el("div", { class: "dlg-actions" },
+      el("button", { text: "Reveal to opponent", onclick: () => act({ type: "peekReveal" }) }),
+      el("button", { class: "primary", text: "Done", onclick: () => act({ type: "peekClose" }) })));
+    $("#overlay").hidden = false;
+  }
+
+  /* ---------- preview ---------- */
+  const preview = $("#preview"), pimg = $("#preview-img");
+  const canHover = window.matchMedia("(hover: hover)").matches;
+  function attachPreview(node, ref) {
+    if (!canHover) return;
+    const src = ref.inscription || ref.image, wide = Boolean(ref.inscription);
+    node.addEventListener("mouseenter", () => { pimg.src = src; preview.classList.toggle("wide", wide); preview.hidden = false; });
+    node.addEventListener("mousemove", (e) => {
+      const w = wide ? 430 : 310, h = wide ? 215 : 440;
+      let x = e.clientX + 18, y = e.clientY - h / 2;
+      if (x + w > innerWidth) x = e.clientX - w - 18;
+      y = Math.max(8, Math.min(y, innerHeight - h - 8));
+      preview.style.left = x + "px"; preview.style.top = y + "px";
+    });
+    node.addEventListener("mouseleave", () => { preview.hidden = true; });
+  }
+
+  let toastTimer = null;
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200); }
+
+  function wireTheme() {
+    const btn = $("#btn-theme"); const order = ["auto", "dark", "light"]; const label = { auto: "Auto", dark: "Dark", light: "Light" };
+    let cur = store.get("rova-theme"); if (cur !== "dark" && cur !== "light") cur = "auto";
+    const apply_ = () => {
+      if (cur === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = cur;
+      btn.textContent = label[cur]; btn.title = `Theme: ${cur}`;
+      try { if (cur === "auto") localStorage.removeItem("rova-theme"); else localStorage.setItem("rova-theme", cur); } catch (_) {}
+    };
+    btn.addEventListener("click", () => { cur = order[(order.indexOf(cur) + 1) % 3]; apply_(); }); apply_();
+  }
+
+  function wire() {
+    wireTheme();
+    const nmIn = $("#my-name"); nmIn.value = store.get("rova-sim-name") || ""; nmIn.addEventListener("input", () => store.set("rova-sim-name", nmIn.value));
+    $("#btn-host").addEventListener("click", host);
+    $("#btn-start-online").addEventListener("click", startOnline);
+    $("#btn-copy-code").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#room-code").textContent); toast("Code copied"); } catch (_) { toast("Select the code to copy it"); } });
+    $("#btn-join").addEventListener("click", join);
+    $("#join-code").addEventListener("keydown", (e) => { if (e.key === "Enter") join(); });
+    $("#btn-solo").addEventListener("click", solo);
+    $("#say-form").addEventListener("submit", (e) => { e.preventDefault(); const t = $("#say").value.trim(); if (t) act({ type: "say", text: t }); $("#say").value = ""; });
+    document.addEventListener("click", (e) => { if (!$("#menu").contains(e.target)) closeMenu(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeMenu(); if (ui.pick) { ui.pick = null; render(); } else if (overlayKind && overlayKind.t === "abyss") closeOverlay(); } });
+    $("#overlay").addEventListener("click", (e) => { if (e.target.id === "overlay" && overlayKind && overlayKind.t === "abyss") closeOverlay(); });
+    window.addEventListener("beforeunload", (e) => { if (ctl.S || ctl.V) { e.preventDefault(); e.returnValue = ""; } });
+  }
+
+  Promise.all([
+    fetch("data/cards.json?v=8").then((r) => r.json()),
+    fetch("data/presets.json?v=1").then((r) => (r.ok ? r.json() : { presets: [] })).catch(() => ({ presets: [] })),
+  ]).then(([data, pre]) => {
+    DATA = data; PRESETS = pre.presets || [];
+    for (const c of data.cards) { c.kind = "card"; REF[c.id] = c; }
+    for (const t of data.tokens) { t.kind = "token"; REF[t.id] = t; }
+    if (data.backs) { BACKS.card = data.backs.card || BACKS.card; BACKS.token = data.backs.token || BACKS.token; }
+    wire(); buildPicker(0); buildPicker(1);
+  }).catch(() => { toast("Couldn't load the card data"); });
+
+  // exposed for automated tests only
+  window.__rova = { parseDeck: (t) => parseDeck(t), ctl };
+})();

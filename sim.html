@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoVA Playtest</title>
+<script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="sim.css?v=3">
+</head>
+<body class="sim">
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <div>
+      <h1>RoVA Playtest</h1>
+      <p class="sub">Tutorial set · not for release</p>
+    </div>
+  </div>
+  <span id="net-status" class="pill" hidden></span>
+  <div class="top-actions">
+    <a class="btn-link" href="index.html">Deck builder</a>
+    <button id="btn-theme" class="ghost" aria-label="Theme: auto" title="Theme: auto">Auto</button>
+  </div>
+</header>
+
+<!-- LOBBY -->
+<main id="lobby" class="lobby">
+  <section class="panel">
+    <h2>1 · Your deck</h2>
+    <label class="field">Your name <input id="my-name" type="text" maxlength="24" placeholder="Player"></label>
+    <div class="deck-pick" id="deck-pick-0"></div>
+  </section>
+
+  <section class="panel">
+    <h2>2 · Play</h2>
+    <div class="play-modes">
+      <div class="mode-card">
+        <h3>Host an online game</h3>
+        <p class="hint">Get a room code and send it to the other player.</p>
+        <button id="btn-host" class="primary">Create room</button>
+        <div id="host-box" hidden>
+          <p>Room code: <strong id="room-code" class="code">······</strong> <button id="btn-copy-code" class="ghost">Copy</button></p>
+          <p id="host-wait" class="hint">Waiting for the other player…</p>
+          <button id="btn-start-online" class="primary" disabled>Start game</button>
+        </div>
+      </div>
+      <div class="mode-card">
+        <h3>Join an online game</h3>
+        <p class="hint">Enter the room code you were sent.</p>
+        <div class="row-inline"><input id="join-code" type="text" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="btn-join" class="primary">Join</button></div>
+        <p id="join-msg" class="hint"></p>
+      </div>
+      <div class="mode-card">
+        <h3>Solo</h3>
+        <p class="hint">Play both sides yourself to test the rules.</p>
+        <details><summary>Second player's deck</summary><div class="deck-pick" id="deck-pick-1"></div></details>
+        <button id="btn-solo" class="primary">Start solo game</button>
+      </div>
+    </div>
+    <p class="hint small">Online play connects the two browsers directly. A free public service (PeerJS) is used only to find each other.</p>
+  </section>
+</main>
+
+<!-- GAME -->
+<main id="game" class="game" hidden>
+  <div class="board-wrap">
+    <div id="banner" class="banner" hidden></div>
+    <div id="opp-hand" class="hand opp-hand"></div>
+    <div id="side-opp" class="side opp"></div>
+    <div id="centre" class="centre"></div>
+    <div id="side-me" class="side me"></div>
+    <div id="my-hand" class="hand my-hand"></div>
+  </div>
+  <aside class="sidepanel">
+    <section class="logbox panel">
+      <div class="panel-head"><h2>Match log</h2><span class="hint small">every step, numbered by turn</span></div>
+      <ol id="log" class="log"></ol>
+    </section>
+    <section class="chatbox panel">
+      <div class="panel-head"><h2>Chat</h2></div>
+      <ol id="chat" class="chat"></ol>
+      <form id="say-form" class="say"><input id="say" type="text" maxlength="300" placeholder="Message the other player" aria-label="Chat message" autocomplete="off"><button class="primary">Send</button></form>
+    </section>
+  </aside>
+</main>
+
+<div id="menu" class="menu" hidden></div>
+<div id="overlay" class="overlay" hidden><div class="overlay-box panel" id="overlay-box"></div></div>
+<div id="preview" class="preview" hidden><img id="preview-img" alt=""></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/peerjs-1.5.5.min.js"></script>
+<script src="sim.js?v=3"></script>
+</body>
+</html>
