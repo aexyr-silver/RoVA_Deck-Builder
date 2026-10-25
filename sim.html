@@ -6,7 +6,7 @@
 <title>RoVA Playtest</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="stylesheet" href="style.css?v=9">
-<link rel="stylesheet" href="sim.css?v=6">
+<link rel="stylesheet" href="sim.css?v=8">
 </head>
 <body class="sim">
 <header class="topbar">
@@ -27,8 +27,8 @@
 <!-- LOBBY -->
 <main id="lobby" class="lobby">
   <section class="panel">
-    <h2>1 · Your deck</h2>
-    <label class="field">Your name <input id="my-name" type="text" maxlength="24" placeholder="Player"></label>
+    <h2>1 · Deck</h2>
+    <label class="field">Name <input id="my-name" type="text" maxlength="24" placeholder="Player"></label>
     <div class="deck-pick" id="deck-pick-0"></div>
   </section>
 
@@ -36,29 +36,29 @@
     <h2>2 · Play</h2>
     <div class="play-modes">
       <div class="mode-card">
-        <h3>Host an online game</h3>
-        <p class="hint">Get a room code and send it to the other player.</p>
+        <h3>Host</h3>
+        <p class="hint">Get a code for your opponent.</p>
         <button id="btn-host" class="primary">Create room</button>
         <div id="host-box" hidden>
           <p>Room code: <strong id="room-code" class="code">······</strong> <button id="btn-copy-code" class="ghost">Copy</button></p>
-          <p id="host-wait" class="hint">Waiting for the other player…</p>
+          <p id="host-wait" class="hint">Waiting for opponent…</p>
           <button id="btn-start-online" class="primary" disabled>Start game</button>
         </div>
       </div>
       <div class="mode-card">
-        <h3>Join an online game</h3>
-        <p class="hint">Enter the room code you were sent.</p>
+        <h3>Join</h3>
+        <p class="hint">Enter your opponent's code.</p>
         <div class="row-inline"><input id="join-code" type="text" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="btn-join" class="primary">Join</button></div>
         <p id="join-msg" class="hint"></p>
       </div>
       <div class="mode-card">
         <h3>Solo</h3>
-        <p class="hint">Play both sides yourself to test the rules.</p>
-        <details><summary>Second player's deck</summary><div class="deck-pick" id="deck-pick-1"></div></details>
-        <button id="btn-solo" class="primary">Start solo game</button>
+        <p class="hint">Play both sides.</p>
+        <details><summary>Player 2 deck</summary><div class="deck-pick" id="deck-pick-1"></div></details>
+        <button id="btn-solo" class="primary">Start solo</button>
       </div>
     </div>
-    <p class="hint small">Online play connects the two browsers directly. A free public service (PeerJS) is used only to find each other.</p>
+    <p class="hint small">Online play is browser to browser (via PeerJS).</p>
   </section>
 </main>
 
@@ -78,13 +78,13 @@
   </div>
   <aside class="sidepanel">
     <section class="logbox panel">
-      <div class="panel-head"><h2>Match log</h2><span class="hint small">every step, numbered by turn</span></div>
+      <div class="panel-head"><h2>Match log</h2><span class="hint small">turn · step</span></div>
       <ol id="log" class="log"></ol>
     </section>
     <section class="chatbox panel">
       <div class="panel-head"><h2>Chat</h2></div>
       <ol id="chat" class="chat"></ol>
-      <form id="say-form" class="say"><input id="say" type="text" maxlength="300" placeholder="Message the other player" aria-label="Chat message" autocomplete="off"><button class="primary">Send</button></form>
+      <form id="say-form" class="say"><input id="say" type="text" maxlength="300" placeholder="Message" aria-label="Chat message" autocomplete="off"><button class="primary">Send</button></form>
     </section>
   </aside>
 </main>
@@ -94,7 +94,7 @@
 <div id="preview" class="preview" hidden><img id="preview-img" alt=""></div>
 <div id="alert" class="alert-wrap" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" hidden>
   <div class="alert-box panel">
-    <h2 id="alert-title">Votes don't match</h2>
+    <h2 id="alert-title">Vote mismatch</h2>
     <p id="alert-text"></p>
     <div class="dlg-actions"><button id="alert-ok" class="primary">OK</button></div>
   </div>
@@ -102,6 +102,6 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/peerjs-1.5.5.min.js"></script>
-<script src="sim.js?v=7"></script>
+<script src="sim.js?v=8"></script>
 </body>
 </html>

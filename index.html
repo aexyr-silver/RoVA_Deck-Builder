@@ -39,7 +39,7 @@
     </div>
     <div id="chosen-stats" class="stats"></div>
     <div id="chosen-list" class="chosen-list"></div>
-    <p id="chosen-empty" class="empty">Click a card on the right to add it.</p>
+    <p id="chosen-empty" class="empty">Click a card to add it.</p>
   </section>
 
   <!-- RIGHT: available pool -->
@@ -47,9 +47,9 @@
     <div class="panel-head">
       <h2 id="pool-title">Available</h2>
       <div class="filters">
-        <input id="search" type="search" placeholder="Search name or text" aria-label="Search">
+        <input id="search" type="search" placeholder="Search" aria-label="Search">
         <select id="f-arcana" aria-label="Arcana Type"><option value="">All types</option></select>
-        <select id="f-kind" aria-label="Card type"><option value="">All card types</option></select>
+        <select id="f-kind" aria-label="Card type"><option value="">All kinds</option></select>
         <select id="f-cost" aria-label="Cost"><option value="">Any cost</option></select>
       </div>
     </div>
@@ -66,12 +66,12 @@
 <dialog id="export-dialog">
   <form method="dialog" class="dlg">
     <h2>Export</h2>
-    <p class="hint">Copy this list and send it to Mysten, or print it. Use your browser's "Save as PDF" to get a PDF.</p>
+    <p class="hint">Copy or print. For a PDF, choose "Save as PDF" when printing.</p>
     <textarea id="export-text" rows="16" readonly></textarea>
     <div class="dlg-actions">
       <button type="button" id="btn-copy" class="primary">Copy list</button>
-      <button type="button" id="btn-print-list">Print decklist</button>
-      <button type="button" id="btn-print-proxies">Print proxies (1:1)</button>
+      <button type="button" id="btn-print-list">Print list</button>
+      <button type="button" id="btn-print-proxies">Print proxies</button>
       <button value="close" class="ghost">Close</button>
     </div>
   </form>
@@ -81,10 +81,10 @@
 <dialog id="import-dialog">
   <form method="dialog" class="dlg">
     <h2>Import</h2>
-    <p class="hint">Paste a decklist exported from this builder (e.g. "3 Blaze Spark - Lv. 5" or "7 Void Token v.3"). It replaces the current summons and tokens.</p>
+    <p class="hint">Paste an exported decklist. It replaces the current deck.</p>
     <textarea id="import-text" rows="16"></textarea>
     <div class="dlg-actions">
-      <button type="button" id="btn-import" class="primary">Load list</button>
+      <button type="button" id="btn-import" class="primary">Load</button>
       <button value="close" class="ghost">Close</button>
       <span id="import-msg" class="hint"></span>
     </div>
@@ -97,6 +97,6 @@
 <div id="print-list" class="print-only"></div>
 <div id="print-proxies" class="print-only"></div>
 
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

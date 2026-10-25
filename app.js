@@ -70,7 +70,7 @@
     const b = item.kind === "card" ? state.summons : state.tokens;
     const cur = b[id] || 0;
     const next = Math.min(cur + n, cap(item));
-    if (next === cur) { toast(`Max ${MAX_COPIES} copies of ${item.name}`); return; }
+    if (next === cur) { toast(`Max ${MAX_COPIES} copies`); return; }
     b[id] = next; save(); render();
   }
   function remove(id, n = 1) {
@@ -87,7 +87,7 @@
       t.setAttribute("aria-selected", String(t.dataset.mode === state.mode));
     }
     $("#chosen-title").textContent = state.mode === "summons" ? "Summons" : "Token stack";
-    $("#pool-title").textContent = state.mode === "summons" ? "Available summons" : "Available tokens";
+    $("#pool-title").textContent = state.mode === "summons" ? "All summons" : "All tokens";
     $("#f-kind").hidden = state.mode !== "summons";
     $("#f-cost").hidden = state.mode !== "summons";
     $("#search").placeholder = state.mode === "summons" ? "Search name or text" : "Search tokens";
@@ -108,7 +108,7 @@
     if (state.mode === "summons") {
       const cards = ids.map((id) => [byId[id], b[id]]);
       const zero = cards.filter(([c]) => c.cost === 0).reduce((a, [, n]) => a + n, 0);
-      stats.append(el("span", { text: `${zero} at cost 0` }));
+      stats.append(el("span", { text: `${zero} cost 0` }));
       for (const t of TYPE_ORDER) {
         const n = cards.filter(([c]) => c.cardType === t).reduce((a, [, q]) => a + q, 0);
         if (n) stats.append(el("span", { text: `${n} ${t}` }));
@@ -125,7 +125,7 @@
       stats.append(el("span", { text: `${sp} special` }));
       for (const v of [3, 5, 7, 13]) {
         const n = toks.filter(([t]) => t.value === v).reduce((a, [, q]) => a + q, 0);
-        if (n) stats.append(el("span", { text: `${n} × value ${v}` }));
+        if (n) stats.append(el("span", { text: `${n}× ${v}` }));
       }
       for (const [label, f] of [["Special tokens", (t) => t.special], ["Normal tokens", (t) => !t.special]]) {
         const group = toks.filter(([t]) => f(t)).sort((a, z) => a[0].value - z[0].value || a[0].name.localeCompare(z[0].name));
@@ -186,7 +186,7 @@
       attachPreview(tile, item);
       grid.append(tile);
     }
-    if (!grid.children.length) grid.append(el("p", { class: "empty", text: "Nothing matches these filters." }));
+    if (!grid.children.length) grid.append(el("p", { class: "empty", text: "No matches." }));
   }
 
   /* ---------- hover preview (desktop only) ---------- */
@@ -222,7 +222,7 @@
     const btn = $("#btn-clear");
     if (!btn.classList.contains("armed")) {
       btn.classList.add("armed");
-      btn.textContent = state.mode === "summons" ? "Clear all summons?" : "Clear all tokens?";
+      btn.textContent = state.mode === "summons" ? "Confirm?" : "Confirm?";
       clearTimeout(armTimer);
       armTimer = setTimeout(disarm, 3000);
       return;
@@ -340,7 +340,7 @@
     for (const [id, n] of Object.entries(state.summons)) for (let i = 0; i < n; i++) imgs.push(["card", byId[id].image]);
     for (const [id, n] of Object.entries(state.tokens)) for (let i = 0; i < n; i++) imgs.push(["tok", byId[id].image]);
     for (const id of Object.keys(state.tokens)) if (byId[id].inscription) imgs.push(["ins", byId[id].inscription]);
-    if (!imgs.length) { toast("The deck is empty"); return; }
+    if (!imgs.length) { toast("Deck is empty"); return; }
     const sheet = el("div", { class: "proxy-sheet" });
     for (const [cls, src] of imgs) sheet.append(el("img", { class: cls, src, alt: "" }));
     area.append(sheet);
@@ -370,7 +370,7 @@
   function fillFilters() {
     const fa = $("#f-arcana");
     for (const a of ARCANA_ORDER) fa.append(el("option", { value: a, text: a }));
-    fa.append(el("option", { value: "None", text: "No type (normal tokens)" }));
+    fa.append(el("option", { value: "None", text: "None (Void Tokens)" }));
     const fk = $("#f-kind");
     for (const t of TYPE_ORDER) fk.append(el("option", { value: t, text: t }));
     const fc = $("#f-cost");
@@ -412,7 +412,7 @@
     $("#btn-copy").addEventListener("click", async () => {
       const ta = $("#export-text");
       try { await navigator.clipboard.writeText(ta.value); toast("Decklist copied"); }
-      catch (_) { ta.select(); try { document.execCommand("copy"); toast("Decklist copied"); } catch (__) { toast("Select the text and copy it"); } }
+      catch (_) { ta.select(); try { document.execCommand("copy"); toast("Decklist copied"); } catch (__) { toast("Copy failed. Select and copy."); } }
     });
     $("#btn-print-list").addEventListener("click", printList);
     $("#btn-print-proxies").addEventListener("click", printProxies);
@@ -423,9 +423,9 @@
     });
     $("#btn-import").addEventListener("click", () => {
       const text = $("#import-text").value;
-      if (!text.trim()) { $("#import-msg").textContent = "Paste a list first."; return; }
+      if (!text.trim()) { $("#import-msg").textContent = "Paste a list."; return; }
       const unknown = importText(text);
-      if (unknown.length) { $("#import-msg").textContent = `Loaded. Not found: ${unknown.join(", ")}`; return; }
+      if (unknown.length) { $("#import-msg").textContent = `Loaded. Unknown: ${unknown.join(", ")}`; return; }
       $("#import-dialog").close(); $("#import-text").value = ""; toast("List loaded");
     });
   }
@@ -442,6 +442,6 @@
       load(); fillFilters(); wire(); render();
     })
     .catch(() => {
-      $("#pool-grid").replaceChildren(el("p", { class: "empty", text: "Couldn't load the card data. If you opened index.html straight from your computer, run it from a web server or GitHub Pages instead." }));
+      $("#pool-grid").replaceChildren(el("p", { class: "empty", text: "Card data failed to load. Open the site from GitHub Pages, not as a local file." }));
     });
 })();

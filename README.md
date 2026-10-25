@@ -52,7 +52,7 @@ Use the **Summons / Tokens** switch at the top to change mode. Switching modes n
 ### Deck name, clearing, theme
 
 - Type a **deck name** at the top. It's included when you export.
-- **Clear** empties the list for the current mode only. Click it once and it asks "Clear all…?"; click again within 3 seconds to confirm.
+- **Clear** empties the list for the current mode only. Click it once and it asks "Confirm?"; click again within 3 seconds to confirm.
 - The **Auto / Dark / Light** button changes the colour theme. Auto follows your device's setting.
 - Your deck, its name and your theme are saved in this browser, so they're still there next time. They don't carry over to another browser or device. To move a deck, export it and import it there.
 
@@ -61,14 +61,14 @@ Use the **Summons / Tokens** switch at the top to change mode. Switching modes n
 Click **Export** to open the export window:
 
 - **Copy list:** copies the decklist as text, to paste into a message. See [Decklist format](#decklist-format).
-- **Print decklist:** a clean printable list of the deck.
-- **Print proxies (1:1):** every card and token in the deck at real size (cards 63 × 88 mm), plus one inscription card for each kind of special token. Print at 100% and cut them out.
+- **Print list:** a clean printable list of the deck.
+- **Print proxies:** every card and token in the deck at real size (cards 63 × 88 mm), plus one inscription card for each kind of special token. Print at 100% and cut them out.
 
 To get a PDF instead of paper, choose **Save as PDF** in your browser's print window.
 
 ### Import
 
-Click **Import**, paste a decklist and press **Load list**. It replaces both your current summons and your tokens. If the list has a deck name line, that name is filled in. Any line the builder doesn't recognise is listed so you can fix it; everything else is still loaded.
+Click **Import**, paste a decklist and press **Load**. It replaces both your current summons and your tokens. If the list has a deck name line, that name is filled in. Any line the builder doesn't recognise is listed so you can fix it; everything else is still loaded.
 
 ---
 
@@ -119,7 +119,7 @@ A virtual table for two players. It's a **sandbox with helpers**: you move cards
 **Play online with someone (two computers):**
 
 1. One player clicks **Create room** and gets a 6-character **room code**. **Copy** puts it on the clipboard. Send the code to the other player.
-2. The other player chooses their own deck, types the code under **Join an online game** and clicks **Join**.
+2. The other player chooses their own deck, types the code under **Join** and clicks **Join**.
 3. When they've joined, the host sees their name and deck size and clicks **Start game**. This opens the table for both players; nothing is shuffled or drawn until each player does their own setup (see [Before turn 1](#3-before-turn-1-setup-and-ready)).
 
 You can't join your own room: once you've created a room, the Join box in that tab is locked, and joining it from another tab or window of the same browser is refused. To test online play alone, use two different browsers or devices, or use Solo.
@@ -128,11 +128,11 @@ The two browsers connect directly to each other. A free public service (PeerJS) 
 
 **Play solo (one computer):**
 
-Choose a deck for the second player under **Second player's deck**, then click **Start solo game**. You control both sides; use **Switch to …** to act as the other player. In solo mode, both hands are visible, and the left column has Setup, Ready and Reset for both sides.
+Choose a deck for the second player under **Player 2 deck**, then click **Start solo**. You control both sides; use **Switch to …** to act as the other player. In solo mode, both hands are visible, and the left column has Setup, Ready and Reset for both sides.
 
 ### 3. Before turn 1: Setup and Ready
 
-The table opens empty: decks and token stacks are not shuffled, and no one has drawn. Each player, in the left column under **Your side**:
+The table opens empty: decks and token stacks are not shuffled, and no one has drawn. Each player, in the left column under **You**:
 
 1. Presses **Setup**. This shuffles your deck and your token stack, draws your 4 starting cards and reveals 3 setup tokens onto your Void Altar.
 2. Votes for the Arcana Field state: **Radiant** or **Dormant**. You can change your vote until you press Ready. Votes are secret: the other player only sees that you've voted.
@@ -143,13 +143,13 @@ When **both** players are ready, the votes are counted:
 - **Votes don't match:** an error pops up for both players, showing who voted what. Both players are set back to not ready. Agree on one state, vote again and press Ready.
 - **Votes match:** the Arcana Field is set to that state and **locked for the whole game**. The setup tokens are compared to decide who goes first, and turn 1 starts. If the setup tokens tie, both token stacks are shuffled and 3 tokens revealed again, as in the rules; this is shown in the log.
 
-The other player's status (for example "Not set up", "Voted · not ready", "Ready") is shown under your buttons.
+The other player's status ("Needs setup", "Needs vote", "Not ready" or "Ready") is shown under your buttons.
 
 Until the game begins, cards and piles can't be used; clicking them shows a reminder.
 
-### Reset side
+### Reset
 
-**Reset side** puts all of your cards back into your deck and all of your tokens back into your token stack, unshuffled, exactly as before Setup. Your hand, arena, Abyss, altar and stash are emptied, and a Fragment of yours on the Fragment Recall Altar is removed. Click it once and it asks **Confirm reset?**; click again within 3 seconds to do it.
+**Reset** puts all of your cards back into your deck and all of your tokens back into your token stack, unshuffled, exactly as before Setup. Your hand, arena, Abyss, altar and stash are emptied, and a Fragment of yours on the Fragment Recall Altar is removed. Click it once and it shows **Confirm?**; click again within 3 seconds to do it.
 
 - Only you can reset your own side (in solo, you can reset either).
 - After a reset, press **Setup** and **Ready** again.
@@ -158,7 +158,7 @@ Until the game begins, cards and piles can't be used; clicking them shows a remi
 
 ### The table
 
-The screen has three columns:
+The screen has three columns, split about 25 / 45 / 30:
 
 - **Left:** whose turn it is, the Arcana Field state, any prompt waiting for you (such as tokens to generate), and all the buttons.
 - **Middle:** the board. Card sizes adjust to the window so the whole board fits.
@@ -191,14 +191,14 @@ Click a card, token or pile to see what you can do with it.
 
 | Click on | Options |
 | --- | --- |
-| **A card in your hand** | Summon to a slot (Quarters can only go in Quarter-zone slots), or place a Fragment on the Fragment Recall Altar · Sacrifice (e.g. to pay a cost) · Put on top or bottom of the deck |
-| **A summon in an arena** | Rest / Stand · Damage +1, −1, Clear · Move to another empty slot · Sacrifice · Return to hand · Put on top or bottom of the deck |
-| **The Fragment on the altar** | Sacrifice now (if it's attacked or its effect ends) · Return to hand |
-| **A token on a Void Altar** | Charge +1, +2, +3, +5, +7, −1, Reset · Claim it into its owner's stash · Move it to another slot · Sacrifice |
-| **A token stack** | Generate a token to a slot of your choice |
-| **A Sealed Token Stash** | Sacrifice the top token |
-| **A Void Abyss** | Opens a window with every card in it (newest first): Make active · Deactivate · Dissipate (turn face down for good) · Return to hand · Put on top of the deck |
-| **A deck** | Draw 1 or 2 (your own) · Look at the top 1–4 cards (yours or the opponent's) · Shuffle (your own) |
+| **A card in your hand** | Summon… (Quarters can only go in Quarter-zone slots), or To Recall Altar for a Fragment · Sacrifice · Deck top or bottom |
+| **A summon in an arena** | Rest / Stand · Damage +1, −1, Clear · Move… · Sacrifice · To hand · Deck top or bottom |
+| **The Fragment on the altar** | Sacrifice (if it's attacked or its effect ends) · To hand |
+| **A token on a Void Altar** | Charge +1, +2, +3, +5, +7, −1, Reset · Claim (into its owner's stash) · Move… · Sacrifice |
+| **A token stack** | Generate… (pick a slot) |
+| **A Sealed Token Stash** | Sacrifice top |
+| **A Void Abyss** | Opens a window with every card in it (newest first): Activate · Deactivate · Dissipate (face down for good) · To hand · Deck top |
+| **A deck** | Draw 1 or 2 (your own) · Peek 1–4 (yours or the opponent's) · Shuffle (your own) |
 
 When an option needs a place, such as a slot to summon into, the allowed spots light up in teal and a prompt appears in the left column. Click a spot, or press **Esc** or **Cancel** to back out.
 
@@ -208,17 +208,17 @@ You can act on the other player's cards too, for example damaging their summon o
 
 At the top:
 
-- **Arcana Field:** shows "by vote" during setup, then the voted state with a lock. It can't be changed once the game has begun.
+- **Arcana Field:** shows "Field: by vote" during setup, then the voted state with a lock. It can't be changed once the game has begun.
 - **Coin flip:** the Radiant/Dormant marker coin, for effects that call for a flip.
 
 Under **Turn** (once the game has begun):
 
 - **End turn:** only the player whose turn it is can press it.
 - **Draw 1** and **Stand all**: for effects that need them.
-- **Activate win (N):** use the Fragment Recall Altar to activate your stashed tokens. It's logged as a win if you have 6 or more. It counts as your altar use for the turn, and it's greyed out if you've already used the altar this turn.
+- **Win (N/6):** activate your stashed tokens on the Fragment Recall Altar. It's logged as a win if you have 6 or more. It counts as your altar use for the turn, and it's greyed out if you've already used the altar this turn.
 - **Reveal hand / Hide hand:** lets the other player see your hand, for effects that reveal it.
 
-Under **Your side**: **Setup**, **Ready** and **Reset side** (see above). In solo there's a box for each side, and **Switch to …** at the bottom.
+Under **You**: **Setup**, the **Field** vote, **Ready** and **Reset** (see above). In solo there's a box for each side, and **Switch to …** at the bottom.
 
 ### What the helpers do for you
 
@@ -229,10 +229,10 @@ Under **Your side**: **Setup**, **Ready** and **Reset side** (see above). In sol
   2. Damage on all summons clears.
   3. A Fragment left on the altar is sacrificed.
   4. A reminder to sacrifice any summon left with 0 capacity.
-- **Tokens after a sacrifice:** every sacrifice adds a token for the other player to generate. A teal prompt in the left column shows who has tokens to generate. Click **Choose slot** and then a slot on that player's altar, or **Skip one** when an effect says no token is generated.
+- **Tokens after a sacrifice:** every sacrifice adds a token for the other player to generate. A teal prompt in the left column shows who has tokens to generate. Click **Pick slot** and then a slot on that player's altar, or **Skip** when an effect says no token is generated.
 - **Empty token stack:** the altar's tokens are shuffled into a new stack and 3 are generated, as in the rules.
 - **Active Abyss card:** a sacrificed card with an Abyss effect becomes active on its own. Only one card can be active across both Abysses: making a new one active dissipates the old one.
-- **Looking at a deck:** a window shows the cards, leftmost on top. Use **Top**, **Bottom** or **To hand** (your own deck only) to rearrange them, **Reveal to opponent** to show them in the log, and **Done** to finish. Only you see the cards unless you reveal them.
+- **Looking at a deck:** a window shows the cards, leftmost on top. Use **Top**, **Bottom** or **To hand** (your own deck only) to rearrange them, **Reveal** to show them in the log, and **Done** to finish. Only you see the cards unless you reveal them.
 
 What the helpers **don't** do: work out card effects, track emission and capacity changes, or check whether a move is legal. Use damage counters, the log and the chat for those.
 
