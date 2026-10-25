@@ -41,6 +41,7 @@ Use the **Summons / Tokens** switch at the top to change mode. Switching modes n
 - **Search** looks through names and card text (effect, affinity, restriction).
 - The filters narrow the list by **Arcana Type**, **card type** (Full, Half, Quarter, Fragment) and **cost**. In Tokens mode, only the type filter is shown.
 - **Hover** over any card to see it larger. For special tokens, hovering shows the token's inscription card.
+- The card images follow the site theme: in **Light** theme they're shown in a dark version, and in **Dark** theme in the white version, so they stand out against the page. Printing always uses the white, ink-saving version.
 
 ### The deck list
 
@@ -168,7 +169,13 @@ On the board, your side is at the bottom and the other player's side is at the t
 
 Your hand is along the bottom. If it gets too long, it scrolls sideways. The other player's hand is shown as card backs with a count, unless they reveal it.
 
-**Hover** over any face-up card or token to see it larger. Special tokens show their inscription card.
+Cards and tokens on the table are shown as **tiles** with large text, so they can be read at any window size:
+
+- **Card tile:** cost (top left), level (top right), name, card type, and **emission / capacity** in large numbers at the bottom. The border is the card's Arcana Type colour.
+- **Token tile:** the value in Roman numerals, and the rune's name for special tokens ("Void" for normal tokens). The border is the type colour for special tokens and grey for normal ones.
+- The other player's revealed hand shows a smaller tile with just the name and emission / capacity.
+
+**Hover** over any card or token to see the full card image. Special tokens show their inscription card. Like in the deck builder, the images follow the site theme.
 
 ### Doing things: click anything
 
@@ -238,12 +245,13 @@ What the helpers **don't** do: work out card effects, track emission and capacit
 | `sim.html`, `sim.js`, `sim.css` | Playtest table (uses `style.css` too) |
 | `data/cards.json` | Every card and token: data and image paths |
 | `data/presets.json` | The preset decks in the playtest lobby |
-| `cards/`, `tokens/`, `inscriptions/`, `backs/` | Card and token images, real size at 300 dpi |
+| `cards/`, `tokens/`, `inscriptions/`, `backs/` | Card and token images, real size at 300 dpi (white version, used for printing and on the dark theme) |
+| `cards-dark/`, `tokens-dark/`, `inscriptions-dark/`, `backs-dark/` | The same images in a dark version, used on the light theme |
 | `vendor/peerjs-1.5.5.min.js` | PeerJS, used for online play (MIT licence, see `vendor/peerjs-LICENSE.txt`) |
 
 ### Updating the cards
 
-Replace `data/cards.json` and the image folders with a new export, then commit. The site updates within a few minutes. If a browser still shows the old version, refresh with **Ctrl + Shift + R** (or **Cmd + Shift + R** on a Mac).
+Replace `data/cards.json` and the image folders (both the white and the `-dark` folders) with a new export, then commit. The site updates within a few minutes. If a browser still shows the old version, refresh with **Ctrl + Shift + R** (or **Cmd + Shift + R** on a Mac).
 
 ### Changing the preset decks
 

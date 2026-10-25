@@ -173,7 +173,7 @@
         if (!hay.includes(q)) continue;
       }
       const n = b[item.id] || 0;
-      const img = el("img", { src: item.image, alt: item.name, loading: "lazy" });
+      const img = el("img", { src: face(item), alt: item.name, loading: "lazy" });
       const tile = el("button", {
         class: `tile${item.kind === "token" ? " token" : ""}${n >= cap(item) ? " maxed" : ""}`,
         title: `${item.name} — click to add, right-click to remove`,
@@ -192,10 +192,15 @@
   /* ---------- hover preview (desktop only) ---------- */
   const preview = $("#preview"), pimg = $("#preview-img");
   const canHover = window.matchMedia("(hover: hover)").matches;
+  // On the light site theme, show the dark card images (and the reverse). Printing always uses the light, ink-saving images.
+  const siteLight = () => getComputedStyle(document.documentElement).colorScheme === "light";
+  const face = (item) => (siteLight() && item.imageDark) || item.image;
+  const insFace = (item) => item.inscription && ((siteLight() && item.inscriptionDark) || item.inscription);
+
   function attachPreview(node, item) {
     if (!canHover) return;
     // special tokens preview their inscription card; everything else previews its own image
-    const src = item.inscription || item.image;
+    const src = insFace(item) || face(item);
     const wide = Boolean(item.inscription);
     node.addEventListener("mouseenter", () => {
       pimg.src = src; pimg.alt = wide ? `${item.name} inscription card` : item.name;
@@ -386,7 +391,8 @@
       btn.title = btn.ariaLabel = `Theme: ${cur}`;
       try { if (cur === "auto") localStorage.removeItem("rova-theme"); else localStorage.setItem("rova-theme", cur); } catch (_) {}
     };
-    btn.addEventListener("click", () => { cur = order[(order.indexOf(cur) + 1) % order.length]; apply(); });
+    btn.addEventListener("click", () => { cur = order[(order.indexOf(cur) + 1) % order.length]; apply(); if (DATA) render(); });
+    window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => { if (DATA) render(); });
     apply();
   }
 
@@ -424,7 +430,7 @@
     });
   }
 
-  fetch("data/cards.json?v=7")
+  fetch("data/cards.json?v=9")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((data) => {
       DATA = data;

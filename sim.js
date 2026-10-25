@@ -29,6 +29,13 @@
   let DATA = null, PRESETS = [];
   const REF = {};          // card/token id -> data
   const BACKS = { card: "backs/card-back.png", token: "backs/token-back.png" };
+  let BACKS_DARK = null;
+  const ROMAN = { 0: "0", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 7: "VII", 13: "XIII" };
+  // Light site theme shows the dark card images, dark theme shows the light ones
+  const siteLight = () => getComputedStyle(document.documentElement).colorScheme === "light";
+  const face = (ref) => (siteLight() && ref.imageDark) || ref.image;
+  const insFace = (ref) => ref.inscription && ((siteLight() && ref.inscriptionDark) || ref.inscription);
+  const back = (k) => (siteLight() && BACKS_DARK && BACKS_DARK[k]) || BACKS[k];
 
   /* =================================================================== */
   /* Decklist parsing (same format as the deck builder)                  */
@@ -471,7 +478,7 @@
   function fitBoard() {
     const b = $(".board-wrap"); if (!b || $("#game").hidden) return;
     const H = b.clientHeight, W = b.clientWidth;
-    let ch = innerWidth <= 1000 ? (W - 50) / 5.05 : Math.min((H - 150) / 7.85, (W - 50) / 5.05);
+    let ch = innerWidth <= 1000 ? (W - 50) / 5.05 : Math.min((H - 150) / 7.98, (W - 50) / 5.05);
     ch = Math.max(40, Math.min(132, Math.floor(ch)));
     document.documentElement.style.setProperty("--ch", ch + "px");
   }
@@ -516,8 +523,8 @@
 
   function img(o, small) {
     const ref = REF[o.ref];
-    if (o.kind === "token") return o.down ? BACKS.token : ref.image;
-    return o.down ? BACKS.card : ref.image;
+    if (o.kind === "token") return o.down ? back("token") : face(ref);
+    return o.down ? back("card") : face(ref);
   }
 
   function render() {
@@ -558,11 +565,26 @@
     const o = V.objects[iid]; if (!o) return el("span");
     const ref = REF[o.ref];
     const n = el("span", { class: `obj${o.kind === "token" ? " tok" : ""}${o.rested ? " rested" : ""}${extra ? " " + extra : ""}`, title: o.down ? "Face down" : ref.name },
-      el("img", { src: img(o), alt: o.down ? "Face-down card" : ref.name, draggable: "false" }));
+      o.down ? el("img", { src: img(o), alt: o.kind === "token" ? "Face-down token" : "Face-down card", draggable: "false" }) : tileFor(ref));
     if (o.dmg) n.append(el("span", { class: "dmg", text: String(o.dmg) }));
     if (o.kind === "token" && o.charge) n.append(el("span", { class: "chg", text: `${o.charge}/${ref.value}` }));
     if (!o.down) attachPreview(n, ref);
     return n;
+  }
+
+  // Board tiles: big readable text in the site theme; the full card shows on hover
+  function tileFor(ref) {
+    const t = (ref.arcanaType || "none").toLowerCase();
+    if (ref.kind === "token") {
+      return el("span", { class: `face ttile t-${t}${ref.special ? " special" : ""}` }, el("span", { class: "tin" },
+        el("span", { class: "tv", text: ROMAN[ref.value] || String(ref.value) }),
+        el("span", { class: "tn", text: ref.special ? ref.name.replace(/ Rune$/, "") : "Void" })));
+    }
+    return el("span", { class: `face ctile t-${t}` },
+      el("span", { class: "ct-top" }, el("span", { class: "ct-cost", title: "Cost", text: ROMAN[ref.cost] ?? String(ref.cost) }), el("span", { class: "ct-lv", text: `Lv ${ref.level}` })),
+      el("span", { class: "ct-name", text: ref.name }),
+      el("span", { class: "ct-type", text: ref.cardType }),
+      el("span", { class: "ct-stats", title: "Emission / Capacity" }, el("b", { text: String(ref.emission) }), el("i", { text: "/" }), el("b", { text: String(ref.capacity) })));
   }
 
   function renderSide(root, V, p, mine) {
@@ -600,26 +622,26 @@
     }
     // Token stack
     const stk = zone("stk", "pilezone");
-    const sp = el("span", { class: `pile tokpile obj${P.stackCount ? "" : " empty"}` }, el("img", { class: "back", src: BACKS.token, alt: "Token stack" }), el("span", { class: "cnt", text: `Stack ${P.stackCount}` }));
+    const sp = el("span", { class: `pile tokpile obj${P.stackCount ? "" : " empty"}` }, el("img", { class: "back", src: back("token"), alt: "Token stack" }), el("span", { class: "cnt", text: `Stack ${P.stackCount}` }));
     sp.addEventListener("click", (e) => menuStack(e, V, p));
     stk.append(sp); root.append(stk);
     // Stash
     const sta = zone("sta", "pilezone");
     const topT = P.stash[0];
-    const stNode = topT ? objNode(V, topT, P.stashCount >= WIN_TARGET ? "win-glow" : "") : el("span", { class: "pile tokpile obj empty" }, el("img", { class: "back", src: BACKS.token, alt: "Empty stash" }));
+    const stNode = topT ? objNode(V, topT, P.stashCount >= WIN_TARGET ? "win-glow" : "") : el("span", { class: "pile tokpile obj empty" }, el("img", { class: "back", src: back("token"), alt: "Empty stash" }));
     stNode.classList.add("pile"); stNode.append(el("span", { class: "cnt", text: `Stash ${P.stashCount}/${WIN_TARGET}` }));
     stNode.addEventListener("click", (e) => menuStash(e, V, p, topT));
     sta.append(stNode); root.append(sta);
     // Abyss
     const aby = zone("aby", "pilezone");
     const at = P.abyss[0];
-    const an = at ? objNode(V, at, V.activeAbyss === at ? "active-ring" : "") : el("span", { class: "pile obj empty" }, el("img", { class: "back", src: BACKS.card, alt: "Empty abyss" }));
+    const an = at ? objNode(V, at, V.activeAbyss === at ? "active-ring" : "") : el("span", { class: "pile obj empty" }, el("img", { class: "back", src: back("card"), alt: "Empty abyss" }));
     an.classList.add("pile"); an.append(el("span", { class: "cnt", text: `Abyss ${P.abyss.length}` }));
     an.addEventListener("click", () => openAbyss(p));
     aby.append(an); root.append(aby);
     // Deck
     const dek = zone("dek", "pilezone");
-    const dn = el("span", { class: `pile obj${P.deckCount ? "" : " empty"}` }, el("img", { class: "back", src: BACKS.card, alt: "Deck" }), el("span", { class: "cnt", text: `Deck ${P.deckCount}` }));
+    const dn = el("span", { class: `pile obj${P.deckCount ? "" : " empty"}` }, el("img", { class: "back", src: back("card"), alt: "Deck" }), el("span", { class: "cnt", text: `Deck ${P.deckCount}` }));
     dn.addEventListener("click", (e) => menuDeck(e, V, p));
     dek.append(dn); root.append(dek);
   }
@@ -688,7 +710,7 @@
     oh.replaceChildren(el("span", { class: "lbl", text: `${O.name}'s hand (${O.handCount})${O.handRevealed ? " · revealed" : ""}` }));
     for (const iid of O.hand) {
       if (iid) { const n = objNode(V, iid); if (ctl.mode === "solo") n.addEventListener("click", (e) => menuHand(e, V, opp(me), iid)); oh.append(n); }
-      else oh.append(el("img", { class: "back", src: BACKS.card, alt: "Card" }));
+      else oh.append(el("img", { class: "back", src: back("card"), alt: "Card" }));
     }
   }
 
@@ -845,7 +867,7 @@
         el("button", { text: "Top", onclick: () => act({ type: "peekPut", iid, where: "top" }) }),
         el("button", { text: "Bottom", onclick: () => act({ type: "peekPut", iid, where: "bottom" }) }),
         pk.owner === me ? el("button", { text: "To hand", onclick: () => act({ type: "peekPut", iid, where: "hand" }) }) : null);
-      const card = el("div", { class: "ocard" }, el("img", { src: ref.image, alt: ref.name }), el("span", { class: "hint", text: ref.name }), btns);
+      const card = el("div", { class: "ocard" }, el("img", { src: face(ref), alt: ref.name }), el("span", { class: "hint", text: ref.name }), btns);
       attachPreview(card.querySelector("img"), ref);
       g.append(card);
     }
@@ -860,7 +882,7 @@
   const canHover = window.matchMedia("(hover: hover)").matches;
   function attachPreview(node, ref) {
     if (!canHover) return;
-    const src = ref.inscription || ref.image, wide = Boolean(ref.inscription);
+    const src = insFace(ref) || face(ref), wide = Boolean(ref.inscription);
     node.addEventListener("mouseenter", () => { pimg.src = src; preview.classList.toggle("wide", wide); preview.hidden = false; });
     node.addEventListener("mousemove", (e) => {
       const w = wide ? 430 : 310, h = wide ? 215 : 440;
@@ -875,6 +897,7 @@
   let toastTimer = null;
   function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200); }
 
+  function rerender() { if (ctl.V) { render(); if (overlayKind && overlayKind.t === "abyss") drawOverlay(); } }
   function wireTheme() {
     const btn = $("#btn-theme"); const order = ["auto", "dark", "light"]; const label = { auto: "Auto", dark: "Dark", light: "Light" };
     let cur = store.get("rova-theme"); if (cur !== "dark" && cur !== "light") cur = "auto";
@@ -883,7 +906,8 @@
       btn.textContent = label[cur]; btn.title = `Theme: ${cur}`;
       try { if (cur === "auto") localStorage.removeItem("rova-theme"); else localStorage.setItem("rova-theme", cur); } catch (_) {}
     };
-    btn.addEventListener("click", () => { cur = order[(order.indexOf(cur) + 1) % 3]; apply_(); }); apply_();
+    btn.addEventListener("click", () => { cur = order[(order.indexOf(cur) + 1) % 3]; apply_(); rerender(); }); apply_();
+    window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", rerender);
   }
 
   function wire() {
@@ -904,13 +928,14 @@
   }
 
   Promise.all([
-    fetch("data/cards.json?v=8").then((r) => r.json()),
+    fetch("data/cards.json?v=9").then((r) => r.json()),
     fetch("data/presets.json?v=1").then((r) => (r.ok ? r.json() : { presets: [] })).catch(() => ({ presets: [] })),
   ]).then(([data, pre]) => {
     DATA = data; PRESETS = pre.presets || [];
     for (const c of data.cards) { c.kind = "card"; REF[c.id] = c; }
     for (const t of data.tokens) { t.kind = "token"; REF[t.id] = t; }
     if (data.backs) { BACKS.card = data.backs.card || BACKS.card; BACKS.token = data.backs.token || BACKS.token; }
+    BACKS_DARK = data.backsDark || null;
     wire(); buildPicker(0); buildPicker(1);
   }).catch(() => { toast("Couldn't load the card data"); });
 
