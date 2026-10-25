@@ -26,6 +26,13 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* ignore */ } },
   };
 
+  // One id per browser, so a player can't join a room they are hosting (same tab or another tab)
+  const CLIENT_ID = (() => {
+    let id = store.get("rova-client-id");
+    if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); store.set("rova-client-id", id); }
+    return id;
+  })();
+
   let DATA = null, PRESETS = [];
   const REF = {};          // card/token id -> data
   const BACKS = { card: "backs/card-back.png", token: "backs/token-back.png" };
@@ -408,6 +415,8 @@
   function code6() { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s = ""; for (let i = 0; i < 6; i++) s += A[Math.floor(Math.random() * A.length)]; return s; }
 
   function host() {
+    if (ctl.mode === "guest") { toast("You've joined a room in this tab. Reload the page to host instead."); return; }
+    if (ctl.mode === "host") return;
     const deck = readDeck(0); if (!deck) return;
     if (typeof Peer === "undefined") { toast("Online play couldn't load"); return; }
     const code = code6();
@@ -417,6 +426,8 @@
     ctl.peer.on("open", () => {
       $("#host-box").hidden = false; $("#room-code").textContent = code; netStatus("Room open", "ok");
       $("#btn-host").disabled = true;
+      $("#btn-join").disabled = true; $("#join-code").disabled = true;
+      $("#join-msg").textContent = "You're hosting in this tab. The other player joins from their own device.";
     });
     ctl.peer.on("error", (e) => { netStatus("Connection problem", "bad"); toast(`Online error: ${e.type || e}`); });
     ctl.peer.on("connection", (conn) => {
@@ -425,6 +436,7 @@
       conn.on("data", (msg) => {
         if (!msg || typeof msg !== "object") return;
         if (msg.t === "hello") {
+          if (msg.client === CLIENT_ID) { conn.send({ t: "error", msg: "You can't join your own room. Send the code to the other player." }); setTimeout(() => conn.close(), 300); ctl.conn = null; return; }
           const parsed = parseDeck(msg.deck);
           if (!parsed.cards.length || !parsed.tokens.length) { conn.send({ t: "error", msg: "Your deck needs summons and tokens." }); return; }
           ctl.guestDeck = parsed; ctl.guestName = String(msg.name || "Guest").slice(0, 24);
@@ -442,11 +454,21 @@
     showGame(); publish();
   }
   function join() {
-    const deck = readDeck(0); if (!deck) return;
     const code = $("#join-code").value.trim().toUpperCase();
+    if (ctl.mode === "host") {
+      $("#join-msg").textContent = code === $("#room-code").textContent
+        ? "That's your own room. Send the code to the other player instead."
+        : "You're hosting a room in this tab. Reload the page to join a different room instead.";
+      return;
+    }
+    if (ctl.mode === "guest") { $("#join-msg").textContent = "You've already joined a room."; return; }
+    const deck = readDeck(0); if (!deck) return;
     if (code.length !== 6) { $("#join-msg").textContent = "Enter the 6-character room code."; return; }
     if (typeof Peer === "undefined") { toast("Online play couldn't load"); return; }
     ctl.mode = "guest"; ctl.me = 1;
+    $("#btn-host").disabled = true;
+    // a failed join (before the game opens) lets the player try again or host instead
+    const giveUp = () => { if (!$("#game").hidden) return; try { ctl.peer && ctl.peer.destroy(); } catch (_) {} ctl.peer = null; ctl.conn = null; ctl.mode = null; $("#btn-host").disabled = false; };
     netStatus("Connecting…");
     ctl.peer = new Peer();
     ctl.peer.on("open", () => {
@@ -454,16 +476,16 @@
       ctl.conn = conn;
       conn.on("open", () => {
         netStatus("Connected", "ok"); $("#join-msg").textContent = "Connected. Waiting for the host to start…";
-        conn.send({ t: "hello", name: myName(), deck: deckText(0) });
+        conn.send({ t: "hello", name: myName(), deck: deckText(0), client: CLIENT_ID });
       });
       conn.on("data", (msg) => {
         if (!msg || typeof msg !== "object") return;
         if (msg.t === "view") { ctl.V = msg.v; if ($("#game").hidden) showGame(); render(); }
-        else if (msg.t === "error") { $("#join-msg").textContent = msg.msg; toast(msg.msg); }
+        else if (msg.t === "error") { $("#join-msg").textContent = msg.msg; toast(msg.msg); netStatus("Not joined", "bad"); giveUp(); }
       });
-      conn.on("close", () => { netStatus("Disconnected", "bad"); toast("Disconnected from the host"); });
+      conn.on("close", () => { if ($("#game").hidden) { giveUp(); return; } netStatus("Disconnected", "bad"); toast("Disconnected from the host"); });
     });
-    ctl.peer.on("error", (e) => { netStatus("Couldn't connect", "bad"); $("#join-msg").textContent = e.type === "peer-unavailable" ? "No room with that code." : `Connection error: ${e.type || e}`; });
+    ctl.peer.on("error", (e) => { netStatus("Couldn't connect", "bad"); $("#join-msg").textContent = e.type === "peer-unavailable" ? "No room with that code." : `Connection error: ${e.type || e}`; giveUp(); });
   }
   function solo() {
     const a = readDeck(0), b = readDeck(1); if (!a || !b) return;

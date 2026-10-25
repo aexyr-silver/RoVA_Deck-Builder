@@ -122,6 +122,8 @@ A virtual table for two players. It's a **sandbox with helpers**: you move cards
 2. The other player chooses their own deck, types the code under **Join an online game** and clicks **Join**.
 3. When they've joined, the host sees their name and deck size and clicks **Start game**. This opens the table for both players; nothing is shuffled or drawn until each player does their own setup (see [Before turn 1](#3-before-turn-1-setup-and-ready)).
 
+You can't join your own room: once you've created a room, the Join box in that tab is locked, and joining it from another tab or window of the same browser is refused. To test online play alone, use two different browsers or devices, or use Solo.
+
 The two browsers connect directly to each other. A free public service (PeerJS) is used only to help them find each other. The host's browser runs the game, so **if the host closes or reloads the page, the game ends**. The page warns before closing.
 
 **Play solo (one computer):**
