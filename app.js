@@ -362,7 +362,6 @@
     $("#deck-name").addEventListener("input", (e) => { state.name = e.target.value; save(); });
     $("#btn-export").addEventListener("click", () => {
       $("#export-text").value = listText();
-      $("#import-box").hidden = true;
       $("#export-dialog").showModal();
     });
     $("#btn-copy").addEventListener("click", async () => {
@@ -372,15 +371,21 @@
     });
     $("#btn-print-list").addEventListener("click", printList);
     $("#btn-print-proxies").addEventListener("click", printProxies);
-    $("#btn-import-toggle").addEventListener("click", () => { $("#import-box").hidden = !$("#import-box").hidden; });
+    $("#btn-import-open").addEventListener("click", () => {
+      $("#import-msg").textContent = "";
+      $("#import-dialog").showModal();
+      $("#import-text").focus();
+    });
     $("#btn-import").addEventListener("click", () => {
-      const unknown = importText($("#import-text").value);
-      $("#export-text").value = listText();
-      $("#import-msg").textContent = unknown.length ? `Not found: ${unknown.join(", ")}` : "List loaded.";
+      const text = $("#import-text").value;
+      if (!text.trim()) { $("#import-msg").textContent = "Paste a list first."; return; }
+      const unknown = importText(text);
+      if (unknown.length) { $("#import-msg").textContent = `Loaded. Not found: ${unknown.join(", ")}`; return; }
+      $("#import-dialog").close(); $("#import-text").value = ""; toast("List loaded");
     });
   }
 
-  fetch("data/cards.json?v=3")
+  fetch("data/cards.json?v=4")
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((data) => {
       DATA = data;

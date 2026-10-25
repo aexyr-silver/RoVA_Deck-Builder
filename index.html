@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RoVA Deck Builder</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <header class="topbar">
@@ -23,6 +23,7 @@
   <div class="top-actions">
     <input id="deck-name" type="text" placeholder="Deck name" aria-label="Deck name" maxlength="60">
     <button id="btn-theme" class="ghost" aria-label="Theme: auto" title="Theme: auto">Auto</button>
+    <button id="btn-import-open">Import</button>
     <button id="btn-export" class="primary">Export</button>
   </div>
 </header>
@@ -70,13 +71,21 @@
       <button type="button" id="btn-copy" class="primary">Copy list</button>
       <button type="button" id="btn-print-list">Print decklist</button>
       <button type="button" id="btn-print-proxies">Print proxies (1:1)</button>
-      <button type="button" id="btn-import-toggle" class="ghost">Import a list…</button>
       <button value="close" class="ghost">Close</button>
     </div>
-    <div id="import-box" hidden>
-      <p class="hint">Paste a list in the same format (e.g. "3 Blaze Spark"). It replaces the current summons and tokens.</p>
-      <textarea id="import-text" rows="8"></textarea>
-      <div class="dlg-actions"><button type="button" id="btn-import" class="primary">Load list</button><span id="import-msg" class="hint"></span></div>
+  </form>
+</dialog>
+
+<!-- Import dialog -->
+<dialog id="import-dialog">
+  <form method="dialog" class="dlg">
+    <h2>Import</h2>
+    <p class="hint">Paste a decklist exported from this builder (e.g. "3 Blaze Spark"). It replaces the current summons and tokens.</p>
+    <textarea id="import-text" rows="16"></textarea>
+    <div class="dlg-actions">
+      <button type="button" id="btn-import" class="primary">Load list</button>
+      <button value="close" class="ghost">Close</button>
+      <span id="import-msg" class="hint"></span>
     </div>
   </form>
 </dialog>
@@ -87,6 +96,6 @@
 <div id="print-list" class="print-only"></div>
 <div id="print-proxies" class="print-only"></div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
