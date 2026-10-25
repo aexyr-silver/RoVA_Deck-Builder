@@ -301,10 +301,17 @@
       case "attack": {
         if (!L || L.zone !== "arena" || S.objects[a.iid].rested) return;
         const T = a.target ? locate(S, a.target) : null;
-        if (!T || !(T.zone === "arena" || T.zone === "fra") || a.target === a.iid) return;
+        if (!T || a.target === a.iid) return;
+        const isTok = T.zone === "altar" && T.top;
+        if (!(T.zone === "arena" || T.zone === "fra" || isTok)) return;
         S.objects[a.iid].rested = true;
         S.attack = { from: a.iid, to: a.target };
-        log(S, "", `${nm(S, a.iid)} attacks ${nm(S, a.target)}${T.zone === "fra" ? " on the Recall Altar" : ` (${pn(S, T.p)})`}.`); break;
+        if (isTok) {
+          const e = Math.max(0, stats(S.objects[a.iid])[0]);
+          log(S, "", `${nm(S, a.iid)} charges ${nm(S, a.target)} on ${pn(S, T.p)}'s altar (+${e}).`);
+          chargeToken(S, me, a.target, T, e);
+        } else log(S, "", `${nm(S, a.iid)} attacks ${nm(S, a.target)}${T.zone === "fra" ? " on the Recall Altar" : ` (${pn(S, T.p)})`}.`);
+        break;
       }
       case "sacrifice": {
         if (!L) return;
@@ -341,16 +348,7 @@
         break;
       }
       case "skipGen": { const p = a.player === 0 || a.player === 1 ? a.player : me; if (S.players[p].pendingGen > 0) { S.players[p].pendingGen--; log(S, "", `${pn(S, me)} skips a token for ${pn(S, p)}.`); } break; }
-      case "charge": if (L && L.zone === "altar" && L.top) {
-        const o = S.objects[a.iid]; o.charge = Math.max(0, o.charge + (a.d | 0));
-        const v = REF[o.ref].value;
-        log(S, "", `${nm(S, a.iid)} (${pn(S, L.p)}): ${o.charge}/${v} charged.`);
-        // a fully charged enemy token goes to its owner's Abyss; it counts as a sacrifice, so the charger generates
-        if (L.p !== me && o.charge >= v) {
-          sendToAbyss(S, a.iid); S.players[me].pendingGen++;
-          log(S, "", `${nm(S, a.iid)} is fully charged and goes to ${pn(S, L.p)}'s Abyss. ${pn(S, me)} generates a token.`);
-        }
-      } break;
+      case "charge": if (L && L.zone === "altar" && L.top) chargeToken(S, me, a.iid, L, a.d | 0); break;
       case "claim": if (L && L.zone === "altar" && L.top) {
         const o = S.objects[a.iid]; detach(S, a.iid); S.players[o.owner].stash.push(a.iid);
         log(S, "", `${pn(S, o.owner)} claims ${nm(S, a.iid)} (stash ${S.players[o.owner].stash.length}).`); } break;
@@ -396,6 +394,18 @@
       }
       default: return;
     }
+  }
+  // Charge a token. Full charge: an enemy token is sacrificed to its owner's Abyss (the charger generates);
+  // your own token stays on the altar until you press Claim.
+  function chargeToken(S, me, iid, L, d) {
+    const o = S.objects[iid]; o.charge = Math.max(0, o.charge + d);
+    const v = REF[o.ref].value;
+    log(S, "", `${nm(S, iid)} (${pn(S, L.p)}): ${o.charge}/${v} charged.`);
+    if (o.charge < v) return;
+    if (L.p !== me) {
+      sendToAbyss(S, iid); S.players[me].pendingGen++;
+      log(S, "", `${nm(S, iid)} is sacrificed to ${pn(S, L.p)}'s Abyss. ${pn(S, me)} generates a token.`);
+    } else log(S, "", `${nm(S, iid)} is fully charged. Claim it from its menu.`);
   }
   const stats = (o) => { const r = REF[o.ref]; return [r.emission + (o.em || 0), r.capacity + (o.cp || 0)]; };
   const statText = (o) => stats(o).join("/");
@@ -714,11 +724,11 @@
     const wrap = el("div", { class: "altar-wrap" });
     for (let k = 0; k < 3; k++) {
       const sl = P.altar[k]; const top = sl[sl.length - 1];
-      const picking = ui.pick && ui.pick.kind === "altar" && ui.pick.side === p && (!ui.pick.filter || ui.pick.filter(k));
+      const picking = ui.pick && ((ui.pick.kind === "altar" && ui.pick.side === p && (!ui.pick.filter || ui.pick.filter(k))) || (ui.pick.kind === "target" && top));
       const slot = el("div", { class: `aslot${picking ? " pickable" : ""}`, title: `Altar slot ${k + 1}` });
       if (top) slot.append(objNode(V, top));
       slot.addEventListener("click", (e) => {
-        if (picking) { const f = ui.pick.onPick; ui.pick = null; f(k); return; }
+        if (picking) { const f = ui.pick.onPick; const kind = ui.pick.kind; ui.pick = null; f(kind === "target" ? top : k); return; }
         if (top) menuAltarToken(e, V, p, top);
       });
       wrap.append(el("div", { class: "slotcol" }, slot, el("span", { class: "under", text: sl.length > 1 ? `+${sl.length - 1} below` : `slot ${k + 1}` })));
@@ -911,7 +921,7 @@
     const o = V.objects[iid], ref = REF[o.ref];
     const canAttack = !o.rested && (p === ctl.me || ctl.mode === "solo");
     openMenu(e, `${ref.name} · ${stats(o).join("/")}${o.em || o.cp ? ` (base ${ref.emission}/${ref.capacity})` : ""}`, [
-      canAttack ? ["Attack…", () => startPick({ kind: "target", side: opp(p), label: `Pick a target for ${ref.name}`,
+      canAttack ? ["Attack/Charge…", () => startPick({ kind: "target", side: opp(p), label: `Pick a summon or token for ${ref.name}`,
         onPick: (target) => act({ type: "attack", iid, target }) })] : null,
       [o.rested ? "Stand" : "Rest", () => act({ type: "rest", iid })],
       [["Emission +1", () => act({ type: "mod", iid, stat: "em", d: 1 })], ["−1", () => act({ type: "mod", iid, stat: "em", d: -1 })]],

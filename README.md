@@ -192,9 +192,9 @@ Click a card, token or pile to see what you can do with it.
 | Click on | Options |
 | --- | --- |
 | **A card in your hand** | Summon… (Quarters can only go in Quarter-zone slots), or To Recall Altar for a Fragment · Sacrifice · Deck top or bottom |
-| **A summon in an arena** | Rest / Stand · Damage +1, −1, Clear · Move… · Sacrifice · To hand · Deck top or bottom |
+| **A summon in an arena** | Attack/Charge… (your standing summons) · Rest / Stand · Emission +1 / −1 · Capacity +1 / −1 · Clear effects · Move… · Sacrifice · To hand · Deck top or bottom |
 | **The Fragment on the altar** | Sacrifice (if it's attacked or its effect ends) · To hand |
-| **A token on a Void Altar** | Charge +1, +2, +3, +5, +7, −1, Reset · Claim (into its owner's stash) · Move… · Sacrifice |
+| **A token on a Void Altar** | Charge +1, +2, +3, +5, +7, −1, Reset · Claim (into its owner's stash) · Move… · Sacrifice. A fully charged **enemy** token goes to its owner's Abyss on its own (see below) |
 | **A token stack** | Generate… (pick a slot) |
 | **A Sealed Token Stash** | Sacrifice top |
 | **A Void Abyss** | Opens a window with every card in it (newest first): Activate · Deactivate · Dissipate (face down for good) · To hand · Deck top |
@@ -210,6 +210,7 @@ At the top:
 
 - **Arcana Field:** shows "Field: by vote" during setup, then the voted state with a lock. It can't be changed once the game has begun.
 - **Coin flip:** the Radiant/Dormant marker coin, for effects that call for a flip.
+- **Undo (N):** takes back the latest action; N is how many steps can be undone (up to 10). Online, the other player gets **Allow** / **Refuse** in their prompt, and you can **Cancel** while waiting. In solo it happens at once. Hover the button to see which action it will undo.
 
 Under **Turn** (once the game has begun):
 
@@ -226,15 +227,25 @@ Under **You**: **Setup**, the **Field** vote, **Ready** and **Reset** (see above
 - **Start of each turn:** your summons stand and you draw 2. The first player draws only 1 on the very first turn.
 - **End of turn:**
   1. Charge on all altar tokens resets.
-  2. Damage on all summons clears.
-  3. A Fragment left on the altar is sacrificed.
+  2. A Fragment left on the altar is sacrificed.
+  3. The attack highlight clears.
   4. A reminder to sacrifice any summon left with 0 capacity.
 - **Tokens after a sacrifice:** every sacrifice adds a token for the other player to generate. A teal prompt in the left column shows who has tokens to generate. Click **Pick slot** and then a slot on that player's altar, or **Skip** when an effect says no token is generated.
 - **Empty token stack:** the altar's tokens are shuffled into a new stack and 3 are generated, as in the rules.
 - **Active Abyss card:** a sacrificed card with an Abyss effect becomes active on its own. Only one card can be active across both Abysses: making a new one active dissipates the old one.
 - **Looking at a deck:** a window shows the cards, leftmost on top. Use **Top**, **Bottom** or **To hand** (your own deck only) to rearrange them, **Reveal** to show them in the log, and **Done** to finish. Only you see the cards unless you reveal them.
 
-What the helpers **don't** do: work out card effects, track emission and capacity changes, or check whether a move is legal. Use damage counters, the log and the chat for those.
+### Effects, attacks and charging
+
+- **Emission and capacity changes:** use **Emission +1 / −1** and **Capacity +1 / −1** on a summon to record effects. The tile shows the current numbers: teal when raised, red when lowered; hover them (or open the menu) to see the base values. Changes stay until you press **Clear effects**, or until the summon leaves the arena.
+- **Damage isn't tracked.** Count it yourselves during a battle.
+- **Attack/Charge…** on one of your standing summons rests it, then you pick a target: an enemy summon, the Fragment on the Recall Altar, or the top token of a slot on **either** Void Altar. The target gets a red outline (the attacker a dashed one) on both screens, and it's logged. Only the latest one is outlined; it clears at the end of the turn.
+  - **Token targets** are charged by the attacker's current emission (including effect changes).
+  - When an **enemy token** is fully charged, it's **sacrificed** to its owner's Void Abyss instead of claimed. Like any sacrifice, you generate a token.
+  - When **your own token** is fully charged, it stays on the altar: open its menu and press **Claim** to put it in your stash.
+- **Charging by hand** (the +1, +2… buttons on a token) works the same way.
+
+What the helpers **don't** do: work out card effects, count damage, or check whether a move is legal. Use the log and the chat for those.
 
 ### Match log and chat
 
