@@ -195,6 +195,7 @@
   function startTurn(S) {
     const p = S.turn, P = S.players[p];
     for (const s of SLOTS) if (P.arena[s]) S.objects[P.arena[s]].rested = false;
+    S.step = "summon";
     log(S, "turn", `Turn ${S.turnNo}: ${pn(S, p)}`);
     drawCards(S, p, S.turnNo === 1 ? 1 : 2);
   }
@@ -274,6 +275,7 @@
 
       case "summon": {
         if (!L || L.zone !== "hand" || L.p !== me) return;
+        if (S.step === "attack" && S.turn === me) return;      // the attack phase ends summoning (Fragments still go to the Recall Altar)
         if (!SLOTS.includes(a.slot) || P.arena[a.slot]) return;
         detach(S, a.iid); P.arena[a.slot] = a.iid;
         log(S, "", `${pn(S, me)} summons ${nm(S, a.iid)} to ${slotName(a.slot)}.`); break;
@@ -298,8 +300,13 @@
         else return;
         const what = a.clear ? "effects cleared" : `${a.stat === "em" ? "emission" : "capacity"} ${a.d > 0 ? "+1" : "−1"}`;
         log(S, "", `${nm(S, a.iid)}: ${what} → ${statText(S.objects[a.iid])}.`); } break;
+      case "nextPhase": {
+        if ((S.turn !== me && !solo) || S.step !== "summon") return;
+        S.step = "attack"; log(S, "sys", `${pn(S, S.turn)}: attack phase. No more summoning this turn (Fragments still allowed).`); break;
+      }
       case "attack": {
         if (!L || L.zone !== "arena" || S.objects[a.iid].rested) return;
+        if (S.step !== "attack" || L.p !== S.turn) return;
         const T = a.target ? locate(S, a.target) : null;
         if (!T || a.target === a.iid) return;
         const isTok = T.zone === "altar" && T.top;
@@ -381,6 +388,7 @@
 
       case "endTurn": {
         if (S.turn !== me && !solo) return;
+        if (S.step !== "attack") return;                         // both phases must be passed
         const ender = S.turn;
         for (const Q of S.players) for (const sl of Q.altar) for (const t of sl) S.objects[t].charge = 0;
         S.attack = null;
@@ -834,8 +842,10 @@
           title: V.undo && V.undo.count ? `Undo: ${V.undo.label}${ctl.mode === "solo" ? "" : " (opponent must allow)"}` : "Nothing to undo",
           onclick: () => act({ type: "undoReq" }) })));
     const box = $("#ctrlbox"); box.replaceChildren();
-    if (!setup) box.append(el("section", { class: "cbox" }, el("h3", { text: "Turn" }), el("div", { class: "cgrid" },
-      el("button", { class: "primary wide", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) }),
+    if (!setup) box.append(el("section", { class: "cbox" }, el("h3", { text: V.step === "attack" ? "Attack phase" : "Summon phase" }), el("div", { class: "cgrid" },
+      V.step === "attack"
+        ? el("button", { class: "primary wide", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) })
+        : el("button", { class: "primary wide", text: "Next phase", title: "Go to the attack phase. Summoning ends (Fragments still allowed).", disabled: myTurn ? false : "", onclick: () => act({ type: "nextPhase" }) }),
       el("button", { text: "Draw 1", onclick: () => act({ type: "draw", n: 1 }) }),
       el("button", { text: "Stand all", onclick: () => act({ type: "standAll" }) }),
       el("button", { class: "wide", text: `Win (${meP.stashCount}/${WIN_TARGET})`, disabled: V.altarUsed[me] ? "" : false, title: "Activate win · uses your altar this turn", onclick: () => act({ type: "activateWin" }) }),
@@ -911,6 +921,7 @@
     const ref = REF[V.objects[iid].ref];
     const items = [];
     if (ref.cardType === "Fragment") items.push(["To Recall Altar", () => act({ type: "toAltar", iid })]);
+    else if (V.step === "attack" && V.turn === p) items.push(["Summon (summon phase only)", () => toast("Summoning ended with the attack phase")]);
     else items.push(["Summon…", () => startPick({ kind: "slot", side: p, label: `Pick a slot for ${ref.name}`,
       filter: ref.cardType === "Quarter" ? (s) => QUARTER_SLOTS.includes(s) : null, onPick: (slot) => act({ type: "summon", iid, slot }) })]);
     items.push(["Sacrifice", () => act({ type: "sacrifice", iid })]);
@@ -919,7 +930,7 @@
   }
   function menuArena(e, V, p, iid) {
     const o = V.objects[iid], ref = REF[o.ref];
-    const canAttack = !o.rested && (p === ctl.me || ctl.mode === "solo");
+    const canAttack = !o.rested && V.step === "attack" && p === V.turn && (p === ctl.me || ctl.mode === "solo");
     openMenu(e, `${ref.name} · ${stats(o).join("/")}${o.em || o.cp ? ` (base ${ref.emission}/${ref.capacity})` : ""}`, [
       canAttack ? ["Attack/Charge…", () => startPick({ kind: "target", side: opp(p), label: `Pick a summon or token for ${ref.name}`,
         onPick: (target) => act({ type: "attack", iid, target }) })] : null,

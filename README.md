@@ -191,7 +191,7 @@ Click a card, token or pile to see what you can do with it.
 
 | Click on | Options |
 | --- | --- |
-| **A card in your hand** | Summon… (Quarters can only go in Quarter-zone slots), or To Recall Altar for a Fragment · Sacrifice · Deck top or bottom |
+| **A card in your hand** | Summon… (summon phase only; Quarters can only go in Quarter-zone slots), or To Recall Altar for a Fragment (any phase) · Sacrifice · Deck top or bottom |
 | **A summon in an arena** | Attack/Charge… (your standing summons) · Rest / Stand · Emission +1 / −1 · Capacity +1 / −1 · Clear effects · Move… · Sacrifice · To hand · Deck top or bottom |
 | **The Fragment on the altar** | Sacrifice (if it's attacked or its effect ends) · To hand |
 | **A token on a Void Altar** | Charge +1, +2, +3, +5, +7, −1, Reset · Claim (into its owner's stash) · Move… · Sacrifice. A fully charged **enemy** token goes to its owner's Abyss on its own (see below) |
@@ -212,9 +212,12 @@ At the top:
 - **Coin flip:** the Radiant/Dormant marker coin, for effects that call for a flip.
 - **Undo (N):** takes back the latest action; N is how many steps can be undone (up to 10). Online, the other player gets **Allow** / **Refuse** in their prompt, and you can **Cancel** while waiting. In solo it happens at once. Hover the button to see which action it will undo.
 
-Under **Turn** (once the game has begun):
+Under **Summon phase** / **Attack phase** (once the game has begun):
 
-- **End turn:** only the player whose turn it is can press it.
+- **Next phase / End turn:** each turn has two phases, and only the player whose turn it is can press this button.
+  1. **Summon phase:** the button says **Next phase**. You can summon, but not Attack/Charge.
+  2. **Attack phase:** after pressing Next phase, the button says **End turn**. You can't summon any more (Fragments still go to the Recall Altar), and **Attack/Charge…** becomes available on your standing summons.
+  The turn only ends after both phases. The box title shows the current phase.
 - **Draw 1** and **Stand all**: for effects that need them.
 - **Win (N/6):** activate your stashed tokens on the Fragment Recall Altar. It's logged as a win if you have 6 or more. It counts as your altar use for the turn, and it's greyed out if you've already used the altar this turn.
 - **Reveal hand / Hide hand:** lets the other player see your hand, for effects that reveal it.
@@ -239,7 +242,7 @@ Under **You**: **Setup**, the **Field** vote, **Ready** and **Reset** (see above
 
 - **Emission and capacity changes:** use **Emission +1 / −1** and **Capacity +1 / −1** on a summon to record effects. The tile shows the current numbers: teal when raised, red when lowered; hover them (or open the menu) to see the base values. Changes stay until you press **Clear effects**, or until the summon leaves the arena.
 - **Damage isn't tracked.** Count it yourselves during a battle.
-- **Attack/Charge…** on one of your standing summons rests it, then you pick a target: an enemy summon, the Fragment on the Recall Altar, or the top token of a slot on **either** Void Altar. The target gets a red outline (the attacker a dashed one) on both screens, and it's logged. Only the latest one is outlined; it clears at the end of the turn.
+- **Attack/Charge…** (attack phase only) on one of your standing summons rests it, then you pick a target: an enemy summon, the Fragment on the Recall Altar, or the top token of a slot on **either** Void Altar. The target gets a red outline (the attacker a dashed one) on both screens, and it's logged. Only the latest one is outlined; it clears at the end of the turn.
   - **Token targets** are charged by the attacker's current emission (including effect changes).
   - When an **enemy token** is fully charged, it's **sacrificed** to its owner's Void Abyss instead of claimed. Like any sacrifice, you generate a token.
   - When **your own token** is fully charged, it stays on the altar: open its menu and press **Claim** to put it in your stash.
