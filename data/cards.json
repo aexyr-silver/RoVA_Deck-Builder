@@ -1,5 +1,5 @@
 {
-  "assetVersion": 11,
+  "assetVersion": 12,
   "assetVersionNote": "Raise assetVersion by 1 whenever you replace image files, so browsers load the new pictures.",
   "scale": "1:1 at 300 dpi",
   "card_mm": [
@@ -28,7 +28,8 @@
       "restriction": "Sacrifice this card at the end of the turn. The opponent generates a token as normal.",
       "image": "cards/blaze-spark.png",
       "title": "",
-      "imageDark": "cards-dark/blaze-spark.png"
+      "imageDark": "cards-dark/blaze-spark.png",
+      "official": "cards-official/blaze-spark.png"
     },
     {
       "id": "blaze-striker",
@@ -44,7 +45,8 @@
       "restriction": "−1 capacity while attacking.",
       "image": "cards/blaze-striker.png",
       "title": "",
-      "imageDark": "cards-dark/blaze-striker.png"
+      "imageDark": "cards-dark/blaze-striker.png",
+      "official": "cards-official/blaze-striker.png"
     },
     {
       "id": "blaze-raider",
@@ -60,7 +62,8 @@
       "restriction": "Also place 1 damage on another summon in your arena (you choose), if possible.",
       "image": "cards/blaze-raider.png",
       "title": "",
-      "imageDark": "cards-dark/blaze-raider.png"
+      "imageDark": "cards-dark/blaze-raider.png",
+      "official": "cards-official/blaze-raider.png"
     },
     {
       "id": "blaze-charger",
@@ -76,7 +79,8 @@
       "restriction": "When this charges a token on your own Void Altar: −2 emission for that charge.",
       "image": "cards/blaze-charger.png",
       "title": "",
-      "imageDark": "cards-dark/blaze-charger.png"
+      "imageDark": "cards-dark/blaze-charger.png",
+      "official": "cards-official/blaze-charger.png"
     },
     {
       "id": "blaze-duelist",
@@ -92,7 +96,8 @@
       "restriction": "If this is also sacrificed in that battle, sacrifice the top token of your stash.",
       "image": "cards/blaze-duelist.png",
       "title": "",
-      "imageDark": "cards-dark/blaze-duelist.png"
+      "imageDark": "cards-dark/blaze-duelist.png",
+      "official": "cards-official/blaze-duelist.png"
     },
     {
       "id": "blaze-titan",
@@ -108,7 +113,8 @@
       "restriction": "Sacrifice the top token of your stash. The opponent generates a token as normal.",
       "image": "cards/blaze-titan.png",
       "title": "",
-      "imageDark": "cards-dark/blaze-titan.png"
+      "imageDark": "cards-dark/blaze-titan.png",
+      "official": "cards-official/blaze-titan.png"
     },
     {
       "id": "blaze-flare",
@@ -124,7 +130,8 @@
       "restriction": "Your summons in the arena also get −1 capacity while this is on the Fragment Recall Altar.",
       "image": "cards/blaze-flare.png",
       "title": "",
-      "imageDark": "cards-dark/blaze-flare.png"
+      "imageDark": "cards-dark/blaze-flare.png",
+      "official": "cards-official/blaze-flare.png"
     },
     {
       "id": "frost-ward",
@@ -140,7 +147,8 @@
       "restriction": "This gets −1 capacity until the start of your next turn.",
       "image": "cards/frost-ward.png",
       "title": "",
-      "imageDark": "cards-dark/frost-ward.png"
+      "imageDark": "cards-dark/frost-ward.png",
+      "official": "cards-official/frost-ward.png"
     },
     {
       "id": "frost-guard",
@@ -156,7 +164,8 @@
       "restriction": "−1 emission while intercepting.",
       "image": "cards/frost-guard.png",
       "title": "",
-      "imageDark": "cards-dark/frost-guard.png"
+      "imageDark": "cards-dark/frost-guard.png",
+      "official": "cards-official/frost-guard.png"
     },
     {
       "id": "frost-sentinel",
@@ -172,7 +181,8 @@
       "restriction": "This also gets −1 emission until end of turn.",
       "image": "cards/frost-sentinel.png",
       "title": "",
-      "imageDark": "cards-dark/frost-sentinel.png"
+      "imageDark": "cards-dark/frost-sentinel.png",
+      "official": "cards-official/frost-sentinel.png"
     },
     {
       "id": "frost-keeper",
@@ -188,7 +198,8 @@
       "restriction": "After it stands this way, it can't charge tokens this turn.",
       "image": "cards/frost-keeper.png",
       "title": "",
-      "imageDark": "cards-dark/frost-keeper.png"
+      "imageDark": "cards-dark/frost-keeper.png",
+      "official": "cards-official/frost-keeper.png"
     },
     {
       "id": "frost-bulwark",
@@ -204,7 +215,8 @@
       "restriction": "Each time this intercepts after the first in a turn, it takes 1 damage.",
       "image": "cards/frost-bulwark.png",
       "title": "",
-      "imageDark": "cards-dark/frost-bulwark.png"
+      "imageDark": "cards-dark/frost-bulwark.png",
+      "official": "cards-official/frost-bulwark.png"
     },
     {
       "id": "frost-colossus",
@@ -220,7 +232,8 @@
       "restriction": "Your summons in the front row get −1 emission.",
       "image": "cards/frost-colossus.png",
       "title": "",
-      "imageDark": "cards-dark/frost-colossus.png"
+      "imageDark": "cards-dark/frost-colossus.png",
+      "official": "cards-official/frost-colossus.png"
     },
     {
       "id": "frost-thaw",
@@ -236,7 +249,8 @@
       "restriction": "The effect will fail if spent on a Full card.",
       "image": "cards/frost-thaw.png",
       "title": "",
-      "imageDark": "cards-dark/frost-thaw.png"
+      "imageDark": "cards-dark/frost-thaw.png",
+      "official": "cards-official/frost-thaw.png"
     },
     {
       "id": "seal-fragment",
@@ -252,7 +266,8 @@
       "restriction": "You sacrifice 2 tokens instead of 1.",
       "image": "cards/seal-fragment.png",
       "title": "",
-      "imageDark": "cards-dark/seal-fragment.png"
+      "imageDark": "cards-dark/seal-fragment.png",
+      "official": "cards-official/seal-fragment.png"
     },
     {
       "id": "seal-warden",
@@ -268,7 +283,8 @@
       "restriction": "When you generate a token, the opponent chooses which slot of your Void Altar it goes on.",
       "image": "cards/seal-warden.png",
       "title": "",
-      "imageDark": "cards-dark/seal-warden.png"
+      "imageDark": "cards-dark/seal-warden.png",
+      "official": "cards-official/seal-warden.png"
     },
     {
       "id": "seal-lock",
@@ -284,7 +300,8 @@
       "restriction": "The opponent chooses a token on top of a slot of your Void Altar. It can't be charged until the end of your next turn.",
       "image": "cards/seal-lock.png",
       "title": "",
-      "imageDark": "cards-dark/seal-lock.png"
+      "imageDark": "cards-dark/seal-lock.png",
+      "official": "cards-official/seal-lock.png"
     },
     {
       "id": "seal-bastion",
@@ -300,7 +317,8 @@
       "restriction": "Summons in your arena can't move to intercept either.",
       "image": "cards/seal-bastion.png",
       "title": "",
-      "imageDark": "cards-dark/seal-bastion.png"
+      "imageDark": "cards-dark/seal-bastion.png",
+      "official": "cards-official/seal-bastion.png"
     },
     {
       "id": "static-pulse",
@@ -316,7 +334,8 @@
       "restriction": "Also place 1 damage on another summon in your arena (you choose), if possible.",
       "image": "cards/static-pulse.png",
       "title": "",
-      "imageDark": "cards-dark/static-pulse.png"
+      "imageDark": "cards-dark/static-pulse.png",
+      "official": "cards-official/static-pulse.png"
     },
     {
       "id": "static-coil",
@@ -332,7 +351,8 @@
       "restriction": "This also gets −1 capacity until the end of your next turn.",
       "image": "cards/static-coil.png",
       "title": "",
-      "imageDark": "cards-dark/static-coil.png"
+      "imageDark": "cards-dark/static-coil.png",
+      "official": "cards-official/static-coil.png"
     },
     {
       "id": "static-storm",
@@ -348,7 +368,8 @@
       "restriction": "Also place 1 damage on every other summon in your arena.",
       "image": "cards/static-storm.png",
       "title": "",
-      "imageDark": "cards-dark/static-storm.png"
+      "imageDark": "cards-dark/static-storm.png",
+      "official": "cards-official/static-storm.png"
     },
     {
       "id": "static-surge",
@@ -364,7 +385,8 @@
       "restriction": "Each time one of your summons takes damage, it takes 1 more damage.",
       "image": "cards/static-surge.png",
       "title": "",
-      "imageDark": "cards-dark/static-surge.png"
+      "imageDark": "cards-dark/static-surge.png",
+      "official": "cards-official/static-surge.png"
     },
     {
       "id": "flow-runner",
@@ -380,7 +402,8 @@
       "restriction": "After it intercepts, it rests.",
       "image": "cards/flow-runner.png",
       "title": "",
-      "imageDark": "cards-dark/flow-runner.png"
+      "imageDark": "cards-dark/flow-runner.png",
+      "official": "cards-official/flow-runner.png"
     },
     {
       "id": "flow-drifter",
@@ -396,7 +419,8 @@
       "restriction": "Then the opponent may move one of their summons in their arena the same way.",
       "image": "cards/flow-drifter.png",
       "title": "",
-      "imageDark": "cards-dark/flow-drifter.png"
+      "imageDark": "cards-dark/flow-drifter.png",
+      "official": "cards-official/flow-drifter.png"
     },
     {
       "id": "flow-tide",
@@ -412,7 +436,8 @@
       "restriction": "Then the opponent moves up to 2 summons in your arena the same way.",
       "image": "cards/flow-tide.png",
       "title": "",
-      "imageDark": "cards-dark/flow-tide.png"
+      "imageDark": "cards-dark/flow-tide.png",
+      "official": "cards-official/flow-tide.png"
     },
     {
       "id": "flow-shift",
@@ -428,7 +453,8 @@
       "restriction": "Then the opponent moves 1 of your summons in your arena the same way.",
       "image": "cards/flow-shift.png",
       "title": "",
-      "imageDark": "cards-dark/flow-shift.png"
+      "imageDark": "cards-dark/flow-shift.png",
+      "official": "cards-official/flow-shift.png"
     },
     {
       "id": "hidden-snare",
@@ -444,7 +470,8 @@
       "restriction": "The opponent generates 2 tokens for this sacrifice instead of 1.",
       "image": "cards/hidden-snare.png",
       "title": "",
-      "imageDark": "cards-dark/hidden-snare.png"
+      "imageDark": "cards-dark/hidden-snare.png",
+      "official": "cards-official/hidden-snare.png"
     },
     {
       "id": "hidden-tripwire",
@@ -460,7 +487,8 @@
       "restriction": "This also takes 1 damage.",
       "image": "cards/hidden-tripwire.png",
       "title": "",
-      "imageDark": "cards-dark/hidden-tripwire.png"
+      "imageDark": "cards-dark/hidden-tripwire.png",
+      "official": "cards-official/hidden-tripwire.png"
     },
     {
       "id": "hidden-lure",
@@ -476,7 +504,8 @@
       "restriction": "You also sacrifice the top token of your stash, if possible. The opponent generates a token as normal.",
       "image": "cards/hidden-lure.png",
       "title": "",
-      "imageDark": "cards-dark/hidden-lure.png"
+      "imageDark": "cards-dark/hidden-lure.png",
+      "official": "cards-official/hidden-lure.png"
     },
     {
       "id": "hidden-ambush",
@@ -492,7 +521,8 @@
       "restriction": "The attacking summon it intercepted also takes 1 damage.",
       "image": "cards/hidden-ambush.png",
       "title": "",
-      "imageDark": "cards-dark/hidden-ambush.png"
+      "imageDark": "cards-dark/hidden-ambush.png",
+      "official": "cards-official/hidden-ambush.png"
     },
     {
       "id": "refract-lens",
@@ -508,7 +538,8 @@
       "restriction": "The opponent looks at your hand.",
       "image": "cards/refract-lens.png",
       "title": "",
-      "imageDark": "cards-dark/refract-lens.png"
+      "imageDark": "cards-dark/refract-lens.png",
+      "official": "cards-official/refract-lens.png"
     },
     {
       "id": "refract-prism",
@@ -524,7 +555,8 @@
       "restriction": "The opponent chooses which card you put in your hand.",
       "image": "cards/refract-prism.png",
       "title": "",
-      "imageDark": "cards-dark/refract-prism.png"
+      "imageDark": "cards-dark/refract-prism.png",
+      "official": "cards-official/refract-prism.png"
     },
     {
       "id": "refract-mirror",
@@ -540,7 +572,8 @@
       "restriction": "You reveal your hand too. The opponent chooses a card from it and you sacrifice it. The opponent generates a token as normal.",
       "image": "cards/refract-mirror.png",
       "title": "",
-      "imageDark": "cards-dark/refract-mirror.png"
+      "imageDark": "cards-dark/refract-mirror.png",
+      "official": "cards-official/refract-mirror.png"
     },
     {
       "id": "refract-glimpse",
@@ -556,7 +589,8 @@
       "restriction": "The opponent looks at the top 3 cards of your deck and puts them back in any order.",
       "image": "cards/refract-glimpse.png",
       "title": "",
-      "imageDark": "cards-dark/refract-glimpse.png"
+      "imageDark": "cards-dark/refract-glimpse.png",
+      "official": "cards-official/refract-glimpse.png"
     },
     {
       "id": "chaos-rift",
@@ -572,7 +606,8 @@
       "restriction": "Summons in both arenas also get −1 capacity while this is active.",
       "image": "cards/chaos-rift.png",
       "title": "",
-      "imageDark": "cards-dark/chaos-rift.png"
+      "imageDark": "cards-dark/chaos-rift.png",
+      "official": "cards-official/chaos-rift.png"
     },
     {
       "id": "chaos-recall",
@@ -588,7 +623,8 @@
       "restriction": "The opponent returns a face-up card from their Void Abyss to their hand, if possible.",
       "image": "cards/chaos-recall.png",
       "title": "",
-      "imageDark": "cards-dark/chaos-recall.png"
+      "imageDark": "cards-dark/chaos-recall.png",
+      "official": "cards-official/chaos-recall.png"
     },
     {
       "id": "chaos-breaker",
@@ -604,7 +640,8 @@
       "restriction": "Sacrifice this card. The opponent generates a token as normal.",
       "image": "cards/chaos-breaker.png",
       "title": "",
-      "imageDark": "cards-dark/chaos-breaker.png"
+      "imageDark": "cards-dark/chaos-breaker.png",
+      "official": "cards-official/chaos-breaker.png"
     },
     {
       "id": "chaos-echo",
@@ -620,7 +657,8 @@
       "restriction": "The opponent puts a face-up card from their Void Abyss on top of their deck, if possible.",
       "image": "cards/chaos-echo.png",
       "title": "",
-      "imageDark": "cards-dark/chaos-echo.png"
+      "imageDark": "cards-dark/chaos-echo.png",
+      "official": "cards-official/chaos-echo.png"
     }
   ],
   "tokens": [
