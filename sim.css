@@ -65,27 +65,24 @@ body.in-game .topbar { flex: none; }
 /* board side grid */
 :root { --ch: 100px; --cw: calc(var(--ch) * .716); --hx: calc(var(--cw) * .84); }
 .side {
-  display: grid; justify-content: center; gap: 4px 6px;
+  display: grid; justify-content: space-evenly; gap: 4px 6px; position: relative;
   grid-template-columns: var(--cw) repeat(5, var(--cw)) var(--cw);
-  grid-template-rows: calc(var(--hx) * 1.155 + 13px) repeat(4, calc(var(--ch) / 2));
+  grid-template-rows: repeat(4, calc(var(--ch) / 2));
   padding: 6px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line);
 }
 .side.me {
   grid-template-areas:
-    "alt alt alt . . . ."
     "stk s1F . s3F . s5F aby"
     "stk s1F s2M s3F s4M s5F aby"
     "sta s1B s2M s3B s4M s5B dek"
     "sta s1B . s3B . s5B dek";
 }
 .side.opp {
-  grid-template-rows: repeat(4, calc(var(--ch) / 2)) calc(var(--hx) * 1.155 + 13px);
   grid-template-areas:
     "dek s5B . s3B . s1B sta"
     "dek s5B s4M s3B s2M s1B sta"
     "aby s5F s4M s3F s2M s1F stk"
-    "aby s5F . s3F . s1F stk"
-    ". . . . alt alt alt";
+    "aby s5F . s3F . s1F stk";
 }
 .zone { position: relative; border: 1px dashed var(--line); border-radius: 8px; display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 0; }
 .zone .lbl { position: absolute; bottom: 2px; left: 0; right: 0; text-align: center; font-size: 11.5px; color: var(--muted); pointer-events: none; line-height: 1.1; }
@@ -119,11 +116,21 @@ body.in-game .topbar { flex: none; }
 .win-glow { box-shadow: 0 0 0 2px var(--accent), 0 0 14px var(--accent); border-radius: 6px; }
 
 /* centre: the shared Fragment Recall Altar */
-.centre { display: flex; align-items: center; justify-content: center; gap: 10px; height: calc(var(--ch) * .8 + 12px); flex: none; }
-.fra { width: calc(var(--cw) * .8 + 10px); height: calc(var(--ch) * .8 + 8px); border: 2px dashed var(--accent-2); border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; }
+/* middle band: your Void Altar (left) · Fragment Recall Altar · the opponent's Void Altar (right) */
+.centre { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; height: calc(var(--ch) * .8 + 26px); flex: none; }
+.band-cell { display: flex; height: 100%; }
+.band-cell.left { justify-content: flex-start; align-items: flex-end; }
+.band-cell.right { justify-content: flex-end; align-items: flex-start; }
+.alt-opp .altar-wrap { flex-direction: row-reverse; }
+.fra-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.qzone { grid-column: 3 / 6; grid-row: 1 / 5; pointer-events: none; z-index: 1;
+  margin: calc(var(--ch) * .12) calc(var(--cw) * .25);
+  background: var(--accent-2); opacity: .55;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%, 50% 0, 50% 2px, 2px 50%, 50% calc(100% - 2px), calc(100% - 2px) 50%, 50% 2px); }
+.fra { width: calc(var(--ch) * .8 + 8px); height: calc(var(--ch) * .8 + 8px); border: 2px dashed var(--accent-2); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
 .fra .obj img { width: calc(var(--cw) * .8); height: calc(var(--ch) * .8); }
 .fra.used::after { content: "used"; position: absolute; top: -9px; right: -6px; font-size: 12px; background: var(--accent-2); color: #fff; padding: 0 5px; border-radius: 999px; }
-.fra-lbl { font-size: 13px; color: var(--muted); max-width: 90px; line-height: 1.2; }
+.fra-lbl { font-size: 12px; color: var(--muted); }
 .turninfo .who { font-weight: 700; color: var(--accent-ink); }
 .turninfo .sub2 { font-size: 14.5px; color: var(--muted); }
 .fieldtag { font-size: 14.5px; border-radius: 999px; padding: 3px 8px; border: 1px solid var(--accent-2); color: var(--accent-2); cursor: pointer; background: none; }

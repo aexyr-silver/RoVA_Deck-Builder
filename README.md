@@ -169,11 +169,11 @@ The screen has three columns, split about 25 / 45 / 30:
 - **Middle:** the board. Card sizes adjust to the window so the whole board fits.
 - **Right:** the match log and the chat.
 
-On the board, your side is at the bottom and the other player's side is at the top, mirrored the way they'd be across a real table. The **Fragment Recall Altar** is shared and sits in the middle. Each side follows the rules' field layout:
+On the board, your side is at the bottom and the other player's side is at the top, mirrored the way they'd be across a real table. The layout follows the playmat: the shared **Fragment Recall Altar** (the dashed circle) sits in a middle band between the two arenas, with your Void Altar to its left and the opponent's to its right. The Quarter zone is outlined as a diamond. Each side follows the rules' field layout:
 
 | Area | Where on your side | What's shown |
 | --- | --- | --- |
-| Void Altar | Top left, 3 hexagon slots | The top token of each slot; "+N below" when tokens are stacked |
+| Void Altar | In the middle band, left of the Fragment Recall Altar (the opponent's is on the right), 3 hexagon slots | The top token of each slot; "+N below" when tokens are stacked |
 | Token stack | Left edge, upper | How many tokens are left |
 | Sealed Token Stash | Left edge, lower | The top token, and your count out of 6. It glows at 6 or more |
 | Arena | Middle, 8 slots | Front row nearest the middle. Quarter-zone slots have a purple outline |

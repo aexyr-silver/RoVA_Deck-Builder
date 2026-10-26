@@ -627,7 +627,7 @@
   function fitBoard() {
     const b = $(".board-wrap"); if (!b || $("#game").hidden) return;
     const H = b.clientHeight, W = b.clientWidth;
-    let ch = innerWidth <= 1000 ? (W - 50) / 5.05 : Math.min((H - 150) / 7.98, (W - 50) / 5.05);
+    let ch = innerWidth <= 1000 ? (W - 50) / 5.05 : Math.min((H - 128) / 6.6, (W - 50) / 5.05);
     ch = Math.max(40, Math.min(132, Math.floor(ch)));
     document.documentElement.style.setProperty("--ch", ch + "px");
   }
@@ -691,9 +691,9 @@
     const V = ctl.V; if (!V) return;
     const me = ctl.me, them = opp(me);
     renderBanner(V, me);
+    renderCentre(V, me);                       // builds the middle band the two Void Altars go into
     renderSide($("#side-me"), V, me, true);
     renderSide($("#side-opp"), V, them, false);
-    renderCentre(V, me);
     renderControls(V, me);
     renderHands(V, me);
     renderLog(V);
@@ -770,7 +770,8 @@
     root.replaceChildren();
     const P = V.players[p];
     // Void Altar
-    const alt = zone("alt", "altar");
+    // Void Altars sit in the middle band beside the Fragment Recall Altar (yours left, the opponent's right)
+    const alt = el("div", { class: `altar ${mine ? "alt-me" : "alt-opp"}`, title: `${P.name}'s Void Altar` });
     const wrap = el("div", { class: "altar-wrap" });
     for (let k = 0; k < 3; k++) {
       const sl = P.altar[k]; const top = sl[sl.length - 1];
@@ -783,7 +784,9 @@
       });
       wrap.append(el("div", { class: "slotcol" }, slot, el("span", { class: "under", text: sl.length > 1 ? `+${sl.length - 1} below` : `slot ${k + 1}` })));
     }
-    alt.append(wrap); root.append(alt);
+    alt.append(wrap); $(mine ? "#band-me" : "#band-opp").append(alt);
+    // the Quarter-zone diamond (columns 2–4), like the playmat
+    root.append(el("div", { class: "qzone", "aria-hidden": "true" }));
 
     // Arena
     for (const s of SLOTS) {
@@ -833,7 +836,9 @@
     if (V.fra) { const n = objNode(V, V.fra.iid); n.addEventListener("click", (e) => {
       if (ui.pick && ui.pick.kind === "target") { const f = ui.pick.onPick; ui.pick = null; f(V.fra.iid); return; }
       menuFra(e, V); }); fra.append(n); }
-    c.append(fra, el("span", { class: "fra-lbl", text: "Fragment Recall Altar" }));
+    c.append(el("div", { id: "band-me", class: "band-cell left" }),
+      el("div", { class: "fra-wrap" }, fra, el("span", { class: "fra-lbl", text: "Fragment Recall Altar" })),
+      el("div", { id: "band-opp", class: "band-cell right" }));
   }
 
   // Reset needs a second click within 3 seconds
