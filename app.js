@@ -5,7 +5,7 @@
   function versionImages(data) {
     const q = data.assetVersion ? `?v=${data.assetVersion}` : "";
     const fix = (o, keys) => { for (const k of keys) if (o[k]) o[k] = o[k].replace(/\?v=\d+$/, "") + q; };
-    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark", "official"]);
+    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark", "official", "inscriptionOfficial"]);
     for (const b of [data.backs, data.backsDark]) if (b) fix(b, ["card", "token"]);
   }
 

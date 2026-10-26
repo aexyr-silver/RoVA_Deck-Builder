@@ -6,7 +6,7 @@
   function versionImages(data) {
     const q = data.assetVersion ? `?v=${data.assetVersion}` : "";
     const fix = (o, keys) => { for (const k of keys) if (o[k]) o[k] = o[k].replace(/\?v=\d+$/, "") + q; };
-    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark", "official"]);
+    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark", "official", "inscriptionOfficial"]);
     for (const b of [data.backs, data.backsDark]) if (b) fix(b, ["card", "token"]);
   }
 
@@ -691,7 +691,7 @@
 
   function img(o, small) {
     const ref = REF[o.ref];
-    if (o.kind === "token") return o.down ? back("token") : face(ref);
+    if (o.kind === "token") return o.down ? back("token") : (ref.official || face(ref));
     return o.down ? back("card") : (ref.official || face(ref));
   }
 
@@ -1100,7 +1100,7 @@
   const canHover = window.matchMedia("(hover: hover)").matches;
   function attachPreview(node, ref) {
     if (!canHover) return;
-    const src = ref.official || insFace(ref) || face(ref), wide = Boolean(ref.inscription);   // zoom: official card art, else my proxy
+    const src = ref.inscriptionOfficial || ref.official || insFace(ref) || face(ref), wide = Boolean(ref.inscription);   // zoom: official layouts (inscription card for special tokens)
     node.addEventListener("mouseenter", () => { pimg.src = src; preview.classList.toggle("wide", wide); preview.hidden = false; });
     node.addEventListener("mousemove", (e) => {
       const w = wide ? 430 : 310, h = wide ? 215 : 440;

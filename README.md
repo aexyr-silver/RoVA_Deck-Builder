@@ -276,6 +276,7 @@ What the helpers **don't** do: work out card effects, count damage, or check whe
 | `cards/`, `tokens/`, `inscriptions/`, `backs/` | Card and token images, real size at 300 dpi (white proxy version, used for printing and on the light theme) |
 | `cards-dark/`, `tokens-dark/`, `inscriptions-dark/`, `backs-dark/` | The same proxy images in a dark version, used on the dark theme |
 | `cards-official/` | Mysten's official card layouts (from "Tutorial Set_S_63x88"), used in the deck builder grid and the playtest zoom. Re-export and replace these when card text or costs change, then raise `assetVersion` |
+| `tokens-official/`, `inscriptions-official/` | Mysten's official token faces (from "Tutorial Set_T_63x63") and inscription cards ("Tutorial Set_TI_88x43"). Token faces show in the deck builder's token grid; in the playtest zoom, special tokens show their official inscription card and Void Tokens their official face. Replace with the same names and raise `assetVersion` after a re-export |
 | `vendor/peerjs-1.5.5.min.js` | PeerJS, used for online play (MIT licence, see `vendor/peerjs-LICENSE.txt`) |
 
 ### Updating the cards

@@ -1,5 +1,5 @@
 {
-  "assetVersion": 12,
+  "assetVersion": 13,
   "assetVersionNote": "Raise assetVersion by 1 whenever you replace image files, so browsers load the new pictures.",
   "scale": "1:1 at 300 dpi",
   "card_mm": [
@@ -673,7 +673,9 @@
       "image": "tokens/ember-rune.png",
       "inscription": "inscriptions/ember-rune.png",
       "imageDark": "tokens-dark/ember-rune.png",
-      "inscriptionDark": "inscriptions-dark/ember-rune.png"
+      "inscriptionDark": "inscriptions-dark/ember-rune.png",
+      "official": "tokens-official/ember-rune.png",
+      "inscriptionOfficial": "inscriptions-official/ember-rune.png"
     },
     {
       "id": "cinder-rune",
@@ -686,7 +688,9 @@
       "image": "tokens/cinder-rune.png",
       "inscription": "inscriptions/cinder-rune.png",
       "imageDark": "tokens-dark/cinder-rune.png",
-      "inscriptionDark": "inscriptions-dark/cinder-rune.png"
+      "inscriptionDark": "inscriptions-dark/cinder-rune.png",
+      "official": "tokens-official/cinder-rune.png",
+      "inscriptionOfficial": "inscriptions-official/cinder-rune.png"
     },
     {
       "id": "rime-rune",
@@ -699,7 +703,9 @@
       "image": "tokens/rime-rune.png",
       "inscription": "inscriptions/rime-rune.png",
       "imageDark": "tokens-dark/rime-rune.png",
-      "inscriptionDark": "inscriptions-dark/rime-rune.png"
+      "inscriptionDark": "inscriptions-dark/rime-rune.png",
+      "official": "tokens-official/rime-rune.png",
+      "inscriptionOfficial": "inscriptions-official/rime-rune.png"
     },
     {
       "id": "hoar-rune",
@@ -712,7 +718,9 @@
       "image": "tokens/hoar-rune.png",
       "inscription": "inscriptions/hoar-rune.png",
       "imageDark": "tokens-dark/hoar-rune.png",
-      "inscriptionDark": "inscriptions-dark/hoar-rune.png"
+      "inscriptionDark": "inscriptions-dark/hoar-rune.png",
+      "official": "tokens-official/hoar-rune.png",
+      "inscriptionOfficial": "inscriptions-official/hoar-rune.png"
     },
     {
       "id": "seal-rune",
@@ -725,7 +733,9 @@
       "image": "tokens/seal-rune.png",
       "inscription": "inscriptions/seal-rune.png",
       "imageDark": "tokens-dark/seal-rune.png",
-      "inscriptionDark": "inscriptions-dark/seal-rune.png"
+      "inscriptionDark": "inscriptions-dark/seal-rune.png",
+      "official": "tokens-official/seal-rune.png",
+      "inscriptionOfficial": "inscriptions-official/seal-rune.png"
     },
     {
       "id": "static-rune",
@@ -738,7 +748,9 @@
       "image": "tokens/static-rune.png",
       "inscription": "inscriptions/static-rune.png",
       "imageDark": "tokens-dark/static-rune.png",
-      "inscriptionDark": "inscriptions-dark/static-rune.png"
+      "inscriptionDark": "inscriptions-dark/static-rune.png",
+      "official": "tokens-official/static-rune.png",
+      "inscriptionOfficial": "inscriptions-official/static-rune.png"
     },
     {
       "id": "flow-rune",
@@ -751,7 +763,9 @@
       "image": "tokens/flow-rune.png",
       "inscription": "inscriptions/flow-rune.png",
       "imageDark": "tokens-dark/flow-rune.png",
-      "inscriptionDark": "inscriptions-dark/flow-rune.png"
+      "inscriptionDark": "inscriptions-dark/flow-rune.png",
+      "official": "tokens-official/flow-rune.png",
+      "inscriptionOfficial": "inscriptions-official/flow-rune.png"
     },
     {
       "id": "hidden-rune",
@@ -764,7 +778,9 @@
       "image": "tokens/hidden-rune.png",
       "inscription": "inscriptions/hidden-rune.png",
       "imageDark": "tokens-dark/hidden-rune.png",
-      "inscriptionDark": "inscriptions-dark/hidden-rune.png"
+      "inscriptionDark": "inscriptions-dark/hidden-rune.png",
+      "official": "tokens-official/hidden-rune.png",
+      "inscriptionOfficial": "inscriptions-official/hidden-rune.png"
     },
     {
       "id": "refract-rune",
@@ -777,7 +793,9 @@
       "image": "tokens/refract-rune.png",
       "inscription": "inscriptions/refract-rune.png",
       "imageDark": "tokens-dark/refract-rune.png",
-      "inscriptionDark": "inscriptions-dark/refract-rune.png"
+      "inscriptionDark": "inscriptions-dark/refract-rune.png",
+      "official": "tokens-official/refract-rune.png",
+      "inscriptionOfficial": "inscriptions-official/refract-rune.png"
     },
     {
       "id": "chaos-rune",
@@ -790,7 +808,9 @@
       "image": "tokens/chaos-rune.png",
       "inscription": "inscriptions/chaos-rune.png",
       "imageDark": "tokens-dark/chaos-rune.png",
-      "inscriptionDark": "inscriptions-dark/chaos-rune.png"
+      "inscriptionDark": "inscriptions-dark/chaos-rune.png",
+      "official": "tokens-official/chaos-rune.png",
+      "inscriptionOfficial": "inscriptions-official/chaos-rune.png"
     },
     {
       "id": "normal-3",
@@ -799,7 +819,8 @@
       "value": 3,
       "special": false,
       "image": "tokens/normal-3.png",
-      "imageDark": "tokens-dark/normal-3.png"
+      "imageDark": "tokens-dark/normal-3.png",
+      "official": "tokens-official/normal-3.png"
     },
     {
       "id": "normal-5",
@@ -808,7 +829,8 @@
       "value": 5,
       "special": false,
       "image": "tokens/normal-5.png",
-      "imageDark": "tokens-dark/normal-5.png"
+      "imageDark": "tokens-dark/normal-5.png",
+      "official": "tokens-official/normal-5.png"
     },
     {
       "id": "normal-7",
@@ -817,7 +839,8 @@
       "value": 7,
       "special": false,
       "image": "tokens/normal-7.png",
-      "imageDark": "tokens-dark/normal-7.png"
+      "imageDark": "tokens-dark/normal-7.png",
+      "official": "tokens-official/normal-7.png"
     },
     {
       "id": "normal-13",
@@ -826,7 +849,8 @@
       "value": 13,
       "special": false,
       "image": "tokens/normal-13.png",
-      "imageDark": "tokens-dark/normal-13.png"
+      "imageDark": "tokens-dark/normal-13.png",
+      "official": "tokens-official/normal-13.png"
     }
   ],
   "backs": {
