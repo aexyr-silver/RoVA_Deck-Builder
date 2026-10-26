@@ -2,6 +2,13 @@
    The host's browser holds the game state; the guest sends actions and receives its own view. */
 (() => {
   "use strict";
+  // Image paths get ?v=<assetVersion> from cards.json, so replaced pictures load fresh after a normal refresh.
+  function versionImages(data) {
+    const q = data.assetVersion ? `?v=${data.assetVersion}` : "";
+    const fix = (o, keys) => { for (const k of keys) if (o[k]) o[k] = o[k].replace(/\?v=\d+$/, "") + q; };
+    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark"]);
+    for (const b of [data.backs, data.backsDark]) if (b) fix(b, ["card", "token"]);
+  }
 
   const SLOTS = ["1F", "1B", "2M", "3F", "3B", "4M", "5F", "5B"];
   const QUARTER_SLOTS = ["2M", "3F", "3B", "4M"];
@@ -1144,7 +1151,7 @@
     fetch("data/cards.json", { cache: "no-cache" }).then((r) => r.json()),
     fetch("data/presets.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : { presets: [] })).catch(() => ({ presets: [] })),
   ]).then(([data, pre]) => {
-    DATA = data; PRESETS = pre.presets || [];
+    versionImages(data); DATA = data; PRESETS = pre.presets || [];
     for (const c of data.cards) { c.kind = "card"; REF[c.id] = c; }
     for (const t of data.tokens) { t.kind = "token"; REF[t.id] = t; }
     if (data.backs) { BACKS.card = data.backs.card || BACKS.card; BACKS.token = data.backs.token || BACKS.token; }

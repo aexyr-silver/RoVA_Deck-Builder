@@ -278,7 +278,7 @@ What the helpers **don't** do: work out card effects, count damage, or check whe
 
 ### Updating the cards
 
-Replace `data/cards.json` and the image folders (both the white and the `-dark` folders) with a new export, then commit. The site updates within a few minutes. The card data is checked for changes on every load, so a normal refresh is enough. Only if a page itself looks outdated, refresh with **Ctrl + Shift + R** (or **Cmd + Shift + R** on a Mac).
+Replace `data/cards.json` and the image folders (both the white and the `-dark` folders) with a new export, then commit. The site updates within a few minutes. The card data is checked for changes on every load, so a normal refresh is enough. **When you replace image files** (cards, tokens, inscriptions or backs) without changing their names, raise `assetVersion` at the top of `data/cards.json` by 1 (for example 11 → 12). Every image link carries that number, so browsers fetch the new pictures instead of showing their saved copies. Only if a page itself looks outdated, refresh with **Ctrl + Shift + R** (or **Cmd + Shift + R** on a Mac).
 
 ### Changing the preset decks
 
