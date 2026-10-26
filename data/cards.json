@@ -1,5 +1,5 @@
 {
-  "assetVersion": 13,
+  "assetVersion": 14,
   "assetVersionNote": "Raise assetVersion by 1 whenever you replace image files, so browsers load the new pictures.",
   "scale": "1:1 at 300 dpi",
   "card_mm": [
@@ -11,7 +11,7 @@
     88,
     43
   ],
-  "token_mm_flat_to_flat": 63,
+  "token_mm_flat_to_flat": 54.56,
   "token_shape": "pointy-top hexagon",
   "cards": [
     {
@@ -860,5 +860,6 @@
   "backsDark": {
     "card": "backs-dark/card-back.png",
     "token": "backs-dark/token-back.png"
-  }
+  },
+  "token_mm_point_to_point": 63
 }

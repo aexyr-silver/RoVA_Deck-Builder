@@ -164,7 +164,7 @@ dialog::backdrop { background: rgba(0,0,0,.55); }
   #print-list td.q { width: 12mm; text-align: right; font-weight: 700; }
   .proxy-sheet { display: flex; flex-wrap: wrap; gap: 0; page-break-after: always; }
   .proxy-sheet img.card { width: 63mm; height: 88mm; }
-  .proxy-sheet img.tok { width: 63mm; height: 72.75mm; }
+  .proxy-sheet img.tok { width: 54.56mm; height: 63mm; }   /* pointy-top hexagon, 63 mm point to point */
   .proxy-sheet img.ins { width: 88mm; height: 43mm; }
 }
 
