@@ -5,7 +5,7 @@
   function versionImages(data) {
     const q = data.assetVersion ? `?v=${data.assetVersion}` : "";
     const fix = (o, keys) => { for (const k of keys) if (o[k]) o[k] = o[k].replace(/\?v=\d+$/, "") + q; };
-    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark"]);
+    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark", "official"]);
     for (const b of [data.backs, data.backsDark]) if (b) fix(b, ["card", "token"]);
   }
 
@@ -180,7 +180,7 @@
         if (!hay.includes(q)) continue;
       }
       const n = b[item.id] || 0;
-      const img = el("img", { src: face(item), alt: item.name, loading: "lazy" });
+      const img = el("img", { src: item.official || face(item), alt: item.name, loading: "lazy" });   // grid: official card art
       const tile = el("button", {
         class: `tile${item.kind === "token" ? " token" : ""}${n >= cap(item) ? " maxed" : ""}`,
         title: `${item.name} — click to add, right-click to remove`,
@@ -201,8 +201,9 @@
   const canHover = window.matchMedia("(hover: hover)").matches;
   // On the light site theme, show the dark card images (and the reverse). Printing always uses the light, ink-saving images.
   const siteLight = () => getComputedStyle(document.documentElement).colorScheme === "light";
-  const face = (item) => (siteLight() && item.imageDark) || item.image;
-  const insFace = (item) => item.inscription && ((siteLight() && item.inscriptionDark) || item.inscription);
+  // my proxy images match the theme: dark set on the dark theme, white set on the light theme (printing always uses white)
+  const face = (item) => (!siteLight() && item.imageDark) || item.image;
+  const insFace = (item) => item.inscription && ((!siteLight() && item.inscriptionDark) || item.inscription);
 
   function attachPreview(node, item) {
     if (!canHover) return;

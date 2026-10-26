@@ -40,8 +40,9 @@ Use the **Summons / Tokens** switch in the middle of the top bar to change mode.
 
 - **Search** looks through names and card text (effect, affinity, restriction).
 - The filters narrow the list by **Arcana Type**, **card type** (Full, Half, Quarter, Fragment) and **cost**. In Tokens mode, only the type filter is shown.
-- **Hover** over any card to see it larger. For special tokens, hovering shows the token's inscription card.
-- The card images follow the site theme: in **Light** theme they're shown in a dark version, and in **Dark** theme in the white version, so they stand out against the page. Printing always uses the white, ink-saving version.
+- The card grid shows the **official card layouts**.
+- **Hover** over any card to see a larger, text-first proxy that's easier to read. For special tokens, hovering shows the token's inscription card. The proxy follows the site theme: dark on the **Dark** theme, white on the **Light** theme.
+- Printing always uses the white, ink-saving proxies.
 
 ### The deck list
 
@@ -188,7 +189,7 @@ Cards and tokens on the table are shown as **tiles** with large text, so they ca
 - **Token tile:** the value in Roman numerals, and the rune's name for special tokens ("Void" for normal tokens). The border is the type colour for special tokens and grey for normal ones.
 - The other player's revealed hand shows a smaller tile with just the name and emission / capacity.
 
-**Hover** over any card or token to see the full card image. Special tokens show their inscription card. Like in the deck builder, the images follow the site theme.
+**Hover** over a card to see its official card layout (also used in the Abyss and peek windows). Tokens show their proxy image, and special tokens their inscription card, in the site theme.
 
 ### Doing things: click anything
 
@@ -272,8 +273,9 @@ What the helpers **don't** do: work out card effects, count damage, or check whe
 | `sim.html`, `sim.js`, `sim.css` | Playtest table (uses `style.css` too) |
 | `data/cards.json` | Every card and token: data and image paths |
 | `data/presets.json` | The preset decks in the playtest lobby |
-| `cards/`, `tokens/`, `inscriptions/`, `backs/` | Card and token images, real size at 300 dpi (white version, used for printing and on the dark theme) |
-| `cards-dark/`, `tokens-dark/`, `inscriptions-dark/`, `backs-dark/` | The same images in a dark version, used on the light theme |
+| `cards/`, `tokens/`, `inscriptions/`, `backs/` | Card and token images, real size at 300 dpi (white proxy version, used for printing and on the light theme) |
+| `cards-dark/`, `tokens-dark/`, `inscriptions-dark/`, `backs-dark/` | The same proxy images in a dark version, used on the dark theme |
+| `cards-official/` | Mysten's official card layouts (from "Tutorial Set_S_63x88"), used in the deck builder grid and the playtest zoom. Re-export and replace these when card text or costs change, then raise `assetVersion` |
 | `vendor/peerjs-1.5.5.min.js` | PeerJS, used for online play (MIT licence, see `vendor/peerjs-LICENSE.txt`) |
 
 ### Updating the cards

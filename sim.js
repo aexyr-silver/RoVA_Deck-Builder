@@ -6,7 +6,7 @@
   function versionImages(data) {
     const q = data.assetVersion ? `?v=${data.assetVersion}` : "";
     const fix = (o, keys) => { for (const k of keys) if (o[k]) o[k] = o[k].replace(/\?v=\d+$/, "") + q; };
-    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark"]);
+    for (const c of [...data.cards, ...data.tokens]) fix(c, ["image", "imageDark", "inscription", "inscriptionDark", "official"]);
     for (const b of [data.backs, data.backsDark]) if (b) fix(b, ["card", "token"]);
   }
 
@@ -47,8 +47,9 @@
   const ROMAN = { 0: "0", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII", 8: "VIII", 9: "IX", 13: "XIII" };
   // Light site theme shows the dark card images, dark theme shows the light ones
   const siteLight = () => getComputedStyle(document.documentElement).colorScheme === "light";
-  const face = (ref) => (siteLight() && ref.imageDark) || ref.image;
-  const insFace = (ref) => ref.inscription && ((siteLight() && ref.inscriptionDark) || ref.inscription);
+  // my proxy images match the theme: dark set on the dark theme, white set on the light theme (printing always uses white)
+  const face = (ref) => (!siteLight() && ref.imageDark) || ref.image;
+  const insFace = (ref) => ref.inscription && ((!siteLight() && ref.inscriptionDark) || ref.inscription);
   const back = (k) => (siteLight() && BACKS_DARK && BACKS_DARK[k]) || BACKS[k];
 
   /* =================================================================== */
@@ -691,7 +692,7 @@
   function img(o, small) {
     const ref = REF[o.ref];
     if (o.kind === "token") return o.down ? back("token") : face(ref);
-    return o.down ? back("card") : face(ref);
+    return o.down ? back("card") : (ref.official || face(ref));
   }
 
   function render() {
@@ -1084,7 +1085,7 @@
         el("button", { text: "Top", onclick: () => act({ type: "peekPut", iid, where: "top" }) }),
         el("button", { text: "Bottom", onclick: () => act({ type: "peekPut", iid, where: "bottom" }) }),
         pk.owner === me ? el("button", { text: "To hand", onclick: () => act({ type: "peekPut", iid, where: "hand" }) }) : null);
-      const card = el("div", { class: "ocard" }, el("img", { src: face(ref), alt: ref.name }), el("span", { class: "hint", text: ref.name }), btns);
+      const card = el("div", { class: "ocard" }, el("img", { src: ref.official || face(ref), alt: ref.name }), el("span", { class: "hint", text: ref.name }), btns);
       attachPreview(card.querySelector("img"), ref);
       g.append(card);
     }
@@ -1099,7 +1100,7 @@
   const canHover = window.matchMedia("(hover: hover)").matches;
   function attachPreview(node, ref) {
     if (!canHover) return;
-    const src = insFace(ref) || face(ref), wide = Boolean(ref.inscription);
+    const src = ref.official || insFace(ref) || face(ref), wide = Boolean(ref.inscription);   // zoom: official card art, else my proxy
     node.addEventListener("mouseenter", () => { pimg.src = src; preview.classList.toggle("wide", wide); preview.hidden = false; });
     node.addEventListener("mousemove", (e) => {
       const w = wide ? 430 : 310, h = wide ? 215 : 440;
