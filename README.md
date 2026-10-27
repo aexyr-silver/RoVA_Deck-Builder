@@ -141,7 +141,7 @@ The two browsers connect directly to each other. A free public service (PeerJS) 
 
 **Play solo (one computer):**
 
-Choose a deck for the second player under **Player 2 deck**, then click **Start solo**. You control both sides; use **Switch to …** to act as the other player. In solo mode, both hands are visible, and the left column has Setup, Ready and Reset for both sides.
+Choose a deck for the second player under **Player 2 deck**, then click **Start solo**. You control both sides; use **Switch to …** to act as the other player. In solo mode, both hands are visible, and the left column has Setup, the Field vote and Ready for both sides.
 
 ### 3. Before turn 1: Setup and Ready
 
@@ -160,22 +160,17 @@ The other player's status ("Needs setup", "Needs vote", "Not ready" or "Ready") 
 
 Until the game begins, cards and piles can't be used; clicking them shows a reminder.
 
-### Reset
+### Game over and Play again
 
-**Reset** puts all of your cards back into your deck and all of your tokens back into your token stack, unshuffled, exactly as before Setup. Your hand, arena, Abyss, altar and stash are emptied, and a Fragment of yours on the Fragment Recall Altar is removed. Click it once and it shows **Confirm?**; click again within 3 seconds to do it.
-
-- Only you can reset your own side (in solo, you can reset either).
-- After a reset, press **Setup** and **Ready** again.
-- If you reset during a game, the game goes back to the setup stage. The other player's side is left as it is, but both players need to vote on the Arcana Field again and press **Ready**. Turn 1 starts over when both are ready.
-- After a win, both players can reset to play again without going back to the lobby.
+When a player activates a win with 6 or more stashed tokens, everyone gets a **Game over** pop-up naming the winner. Players get **Play again**: it puts all of your cards back into your deck and your tokens back into your stack, unshuffled, as before Setup. When both players have pressed it (in solo, one press resets both sides), press **Setup**, vote and **Ready** to start a new game. Spectators only see the result. If you close the pop-up, the same **Play again** button stays in the prompt in the left column.
 
 ### The table
 
 The screen has three columns, split about 25 / 45 / 30:
 
-- **Left:** whose turn it is, the Arcana Field state, any prompt waiting for you (such as tokens to generate), and all the buttons.
+- **Left:** a large **preview** of the last card or token you hovered over, and below it whose turn and which phase it is, any prompt waiting for you (such as tokens to generate), and the **Next phase / End turn** button. During setup, the Setup, Field vote and Ready buttons sit here.
 - **Middle:** the board. Card sizes adjust to the window so the whole board fits.
-- **Right:** the match log and the chat.
+- **Right:** the match log and the chat, with **Spectate** and (for the host) **End game** below the chat in online games.
 
 On the board, your side is at the bottom and the other player's side is at the top, mirrored the way they'd be across a real table. The layout follows the playmat: the shared **Fragment Recall Altar** (the dashed circle) sits in a middle band between the two arenas, with your Void Altar to its left and the opponent's to its right. The Quarter zone is outlined as a diamond. Each side follows the rules' field layout:
 
@@ -196,7 +191,7 @@ Cards and tokens on the table are shown as **tiles** with large text, so they ca
 - **Token tile:** the value in Roman numerals, and the rune's name for special tokens ("Void" for normal tokens). The border is the type colour for special tokens and grey for normal ones.
 - The other player's revealed hand shows a smaller tile with just the name and emission / capacity.
 
-**Hover** over a card to see its official card layout (also used in the Abyss and peek windows). Tokens show their proxy image, and special tokens their inscription card, in the site theme.
+**Hover** over a card to show its official card layout in the large preview on the left; it stays until you hover something else. Tokens show their official face, and special tokens their official inscription card. Inside the Abyss and peek windows, the zoom pops up next to the pointer instead.
 
 ### Doing things: click anything
 
@@ -204,12 +199,13 @@ Click a card, token or pile to see what you can do with it.
 
 | Click on | Options |
 | --- | --- |
-| **A card in your hand** | Summon… (summon phase only; Quarters can only go in Quarter-zone slots), or To Recall Altar for a Fragment (any phase) · Sacrifice · Deck top or bottom |
+| **A card in your hand** | Summon… (summon phase only; Quarters can only go in Quarter-zone slots), or To Recall Altar for a Fragment (any phase) · Sacrifice · Deck top or bottom · Reveal / Hide hand |
+| **Your hand's name button** (e.g. "Aexyr · 5 ▾") | Reveal / Hide hand · Draw 1 or 2 |
 | **A summon in an arena** | Attack/Charge… (your standing summons) · Rest / Stand · Emission +1 / −1 · Capacity +1 / −1 · Clear effects · Move… · Sacrifice · To hand · Deck top or bottom |
 | **The Fragment on the altar** | Sacrifice (if it's attacked or its effect ends) · To hand |
 | **A token on a Void Altar** | Charge +1, +2, +3, +5, +7, −1, Reset · Claim (into its owner's stash) · Move… · Sacrifice. A fully charged **enemy** token goes to its owner's Abyss on its own (see below) |
 | **A token stack** | Generate… (pick a slot) |
-| **A Sealed Token Stash** | Sacrifice top |
+| **A Sealed Token Stash** | Sacrifice top · Activate win (your own) |
 | **A Void Abyss** | Opens a window with every card in it (newest first): Activate · Deactivate · Dissipate (face down for good) · To hand · Deck top |
 | **A deck** | Draw 1 or 2 (your own) · Peek 1–4 (yours or the opponent's) · Shuffle (your own) |
 
@@ -217,25 +213,24 @@ When an option needs a place, such as a slot to summon into, the allowed spots l
 
 You can act on the other player's cards too, for example damaging their summon or charging a token on their altar, because effects often need that. Every action is logged with the name of the player who did it.
 
-### Buttons in the left column
+### Buttons
 
-At the top:
-
-- **Arcana Field:** shows "Field: by vote" during setup, then the voted state with a lock. It can't be changed once the game has begun.
-- **Coin flip:** the Radiant/Dormant marker coin, for effects that call for a flip.
-- **Undo (N):** takes back the latest action; N is how many steps can be undone (up to 10). Online, the other player gets **Allow** / **Refuse** in their prompt, and you can **Cancel** while waiting. In solo it happens at once. Hover the button to see which action it will undo.
-
-Under **Summon phase** / **Attack phase** (once the game has begun):
+**Left column, under the preview:**
 
 - **Next phase / End turn:** each turn has two phases, and only the player whose turn it is can press this button.
   1. **Summon phase:** the button says **Next phase**. You can summon, but not Attack/Charge.
   2. **Attack phase:** after pressing Next phase, the button says **End turn**. You can't summon any more (Fragments still go to the Recall Altar), and **Attack/Charge…** becomes available on your standing summons.
-  The turn only ends after both phases. The box title shows the current phase.
-- **Draw 1** and **Stand all**: for effects that need them.
-- **Win (N/6):** activate your stashed tokens on the Fragment Recall Altar. It's logged as a win if you have 6 or more. It counts as your altar use for the turn, and it's greyed out if you've already used the altar this turn.
-- **Reveal hand / Hide hand:** lets the other player see your hand, for effects that reveal it.
+  The turn only ends after both phases. The line above the button shows the current phase.
+- **During setup:** **Setup**, the **Field** vote and **Ready**. In solo there's a box for each side, and **Switch to …** at the bottom.
 
-Under **You**: **Setup**, the **Field** vote, **Ready** and **Reset** (see above). In solo there's a box for each side, and **Switch to …** at the bottom.
+**Beside the Fragment Recall Altar** (middle of the board):
+
+- Left of it: the **Arcana Field** state (with a lock once voted), **Coin flip** (Radiant is heads, Dormant is tails) and **Stand all** (for effects).
+- Right of it: **Win (N/6)**, which activates your stashed tokens on the Fragment Recall Altar. It's logged as a win with 6 or more, counts as your altar use for the turn, and is greyed out if you've already used the altar. Also **Undo (N)**, which takes back the latest action, up to 10 steps. Online, the other player gets **Allow** / **Refuse**, and you can **Cancel** while waiting; in solo it happens at once. Hover it to see which action it will undo.
+
+**Drawing and revealing your hand** are in the deck's menu and your hand's menu (see the table above).
+
+**Below the chat** (online only): **Spectate** (asks "Ends game?" during a game) and, for the host, **End game**.
 
 ### What the helpers do for you
 

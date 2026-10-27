@@ -278,7 +278,7 @@
       case "draw": drawCards(S, me, Math.max(1, Math.min(5, a.n | 0))); break;
       case "shuffle": shuffle(P.deck); log(S, "", `${pn(S, me)} shuffles their deck.`); break;
       case "standAll": for (const s of SLOTS) if (P.arena[s]) S.objects[P.arena[s]].rested = false; log(S, "", `${pn(S, me)} stands all.`); break;
-      case "revealHand": P.handRevealed = !P.handRevealed; log(S, "", `${pn(S, me)} ${P.handRevealed ? "reveals" : "hides"} their hand.`); break;
+      case "revealHand": { const Q = S.players[side]; Q.handRevealed = !Q.handRevealed; log(S, "", `${pn(S, side)} ${Q.handRevealed ? "reveals" : "hides"} their hand.`); break; }
       case "coin": log(S, "sys", `${pn(S, me)} flips: ${Math.random() < 0.5 ? "Radiant" : "Dormant"}.`); break;
 
       case "summon": {
@@ -374,7 +374,7 @@
         S.altarUsed[me] = true;
         const n = P.stash.length;
         log(S, n >= WIN_TARGET ? "turn" : "sys", `${pn(S, me)} activates the win on the Fragment Recall Altar with ${n} stashed tokens${n >= WIN_TARGET ? ". WIN!" : ` (needs ${WIN_TARGET}).`}`);
-        if (n >= WIN_TARGET) S.over = true; break;
+        if (n >= WIN_TARGET) { S.over = true; S.winner = me; S.overN = (S.overN || 0) + 1; } break;
       }
       case "peek": {
         const owner = a.owner === 0 || a.owner === 1 ? a.owner : me;
@@ -848,8 +848,21 @@
     renderLog(V);
     renderPeek(V, me);
     renderAlert(V);
+    renderGameOver(V);
   }
 
+  let lastOver = 0;
+  function renderGameOver(V) {
+    if (!V.over || !V.overN || V.overN === lastOver) return;
+    lastOver = V.overN;
+    const who = V.players[V.winner] ? V.players[V.winner].name : "A player";
+    $("#go-text").textContent = `${who} wins!`;
+    const a = $("#go-actions"); a.replaceChildren();
+    if (!ctl.spectator) a.append(el("button", { class: "primary", text: "Play again", title: "Reset your side. When both players have, Setup / vote / Ready start a new game.",
+      onclick: () => { $("#gameover").hidden = true; if (ctl.mode === "solo") { act({ type: "reset", player: 0 }); act({ type: "reset", player: 1 }); } else act({ type: "reset" }); } }));
+    a.append(el("button", { text: "Close", onclick: () => { $("#gameover").hidden = true; } }));
+    $("#gameover").hidden = false;
+  }
   let lastAlert = 0;
   function renderAlert(V) {
     if (!V.alert || V.alert.n === lastAlert) return;
@@ -885,9 +898,11 @@
           onPick: (slot) => act({ type: "generate", player: p, slot, pending: true }) }) }));
         parts.push(el("button", { text: "Skip", onclick: () => act({ type: "skipGen", player: p }) }));
       }
-      if (V.over) parts.push(el("span", { text: "Game over. Reset to replay." }));
+      if (V.over) parts.push(el("span", { text: `Game over: ${V.players[V.winner] ? V.players[V.winner].name : "?"} wins.` }),
+        ctl.spectator ? null : el("button", { text: "Play again", onclick: () => { if (ctl.mode === "solo") { act({ type: "reset", player: 0 }); act({ type: "reset", player: 1 }); } else act({ type: "reset" }); } }));
     }
-    b.hidden = !parts.length; b.append(...parts);
+    const shown = parts.filter(Boolean);
+    b.hidden = !shown.length; b.append(...shown);
   }
 
   function zone(area, cls, label) { const z = el("div", { class: `zone ${cls || ""}`, style: `grid-area:${area}` }); if (label) z.append(el("span", { class: "lbl", text: label })); return z; }
@@ -991,9 +1006,20 @@
     if (V.fra) { const n = objNode(V, V.fra.iid); n.addEventListener("click", (e) => {
       if (ui.pick && ui.pick.kind === "target") { const f = ui.pick.onPick; ui.pick = null; f(V.fra.iid); return; }
       menuFra(e, V); }); fra.append(n); }
-    c.append(el("div", { id: "band-me", class: "band-cell left" }),
+    const meP = V.players[me], spec = ctl.spectator;
+    const undoN = V.undo && V.undo.count;
+    const left = el("div", { class: "fra-tools left" },
+      el("div", { class: `fieldtag${V.field ? " locked" : ""}`, text: V.field ? `${V.field} 🔒` : "Field: vote", title: V.field ? `Arcana Field: ${V.field} (locked by vote)` : "Arcana Field: set by vote" }),
+      spec ? null : el("button", { class: "ghost", text: "Coin flip", onclick: () => act({ type: "coin" }) }),
+      spec || V.phase !== "play" ? null : el("button", { class: "ghost", text: "Stand all", title: "Stand all your summons (for effects)", onclick: () => act({ type: "standAll" }) }));
+    const right = el("div", { class: "fra-tools right" },
+      spec || V.phase !== "play" ? null : el("button", { class: meP.stashCount >= WIN_TARGET ? "primary" : "ghost", text: `Win ${meP.stashCount}/${WIN_TARGET}`,
+        disabled: V.altarUsed[me] ? "" : false, title: "Activate your win on the Fragment Recall Altar (uses your altar this turn)", onclick: () => act({ type: "activateWin" }) }),
+      spec ? null : el("button", { class: "ghost", text: `Undo${undoN ? ` (${undoN})` : ""}`, disabled: undoN && !V.undo.req ? false : "",
+        title: undoN ? `Undo: ${V.undo.label}${ctl.mode === "solo" ? "" : " (opponent must allow)"}` : "Nothing to undo", onclick: () => act({ type: "undoReq" }) }));
+    c.append(el("div", { id: "band-me", class: "band-cell left" }), left,
       el("div", { class: "fra-wrap" }, fra, el("span", { class: "fra-lbl", text: "Fragment Recall Altar" })),
-      el("div", { id: "band-opp", class: "band-cell right" }));
+      right, el("div", { id: "band-opp", class: "band-cell right" }));
   }
 
   // Reset needs a second click within 3 seconds
@@ -1025,7 +1051,6 @@
         disabled: P.ready ? "" : false, title: P.ready ? "Unready to change" : `Vote ${ch}`, onclick: () => act({ type: "vote", choice: ch, ...extra }) }));
       btns.append(vote);
     }
-    btns.append(reset);
     return el("section", { class: "cbox" }, el("h3", {}, document.createTextNode(title), el("span", { class: `status${P.ready ? " ok" : ""}`, text: setup ? sideStatus(P) : "" })), btns);
   }
 
@@ -1035,39 +1060,29 @@
     const myTurn = V.turn === me || solo;
     $("#turnbox").replaceChildren(
       el("div", { class: "who", text: setup ? "Setup" : `${V.players[V.turn].name}'s turn` }),
-      el("div", { class: "sub2", text: setup ? "Set up · vote · Ready" : `Turn ${V.turnNo}${solo ? ` · as ${meP.name}` : (V.turn === me ? " · your turn" : "")}` }),
-      el("div", { class: "cgrid" },
-        el("div", { class: `fieldtag wide${V.field ? " locked" : ""}`, text: V.field ? `Field: ${V.field} 🔒` : "Field: by vote",
-          title: V.field ? "Locked by vote" : "Set by vote" }),
-        ctl.spectator ? null : el("button", { class: "ghost", text: "Coin flip", onclick: () => act({ type: "coin" }) }),
-        ctl.spectator ? null : el("button", { class: "ghost", text: `Undo${V.undo && V.undo.count ? ` (${V.undo.count})` : ""}`, disabled: V.undo && V.undo.count && !V.undo.req ? false : "",
-          title: V.undo && V.undo.count ? `Undo: ${V.undo.label}${ctl.mode === "solo" ? "" : " (opponent must allow)"}` : "Nothing to undo",
-          onclick: () => act({ type: "undoReq" }) })));
+      el("div", { class: "sub2", text: setup ? "Set up · vote · Ready" : `Turn ${V.turnNo} · ${V.step === "attack" ? "Attack phase" : "Summon phase"}${solo ? ` · as ${meP.name}` : (!ctl.spectator && V.turn === me ? " · your turn" : "")}` }));
     const box = $("#ctrlbox"); box.replaceChildren();
-    if (ctl.spectator) {         // spectators only watch
-      box.append(el("section", { class: "cbox" }, el("h3", { text: "Spectating" }),
-        el("p", { class: "hint small", text: `${V.players[0].name}: ${setup ? sideStatus(V.players[0]) : "in game"}` }),
-        el("p", { class: "hint small", text: `${V.players[1].name}: ${setup ? sideStatus(V.players[1]) : "in game"}` }),
-        el("p", { class: "hint small", text: "Seats open between games. You can chat." })));
-      if (ctl.mode === "host") box.append(endGameBtn());
-      return;
+    if (ctl.spectator) {
+      box.append(el("p", { class: "hint small", text: `Spectating. ${V.players[0].name}: ${setup ? sideStatus(V.players[0]) : "in game"} · ${V.players[1].name}: ${setup ? sideStatus(V.players[1]) : "in game"}` }));
+    } else if (setup) {
+      box.append(sideBox(V, me, solo ? meP.name : "You"));
+      if (solo) box.append(sideBox(V, opp(me), O.name));
+      else box.append(el("p", { class: "hint small oppstat", text: `${O.name}: ${sideStatus(O)}` }));
+    } else {
+      box.append(V.step === "attack"
+        ? el("button", { class: "primary big", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) })
+        : el("button", { class: "primary big", text: "Next phase", title: "Go to the attack phase. Summoning ends (Fragments still allowed).", disabled: myTurn ? false : "", onclick: () => act({ type: "nextPhase" }) }));
     }
-    if (!setup) box.append(el("section", { class: "cbox" }, el("h3", { text: V.step === "attack" ? "Attack phase" : "Summon phase" }), el("div", { class: "cgrid" },
-      V.step === "attack"
-        ? el("button", { class: "primary wide", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) })
-        : el("button", { class: "primary wide", text: "Next phase", title: "Go to the attack phase. Summoning ends (Fragments still allowed).", disabled: myTurn ? false : "", onclick: () => act({ type: "nextPhase" }) }),
-      el("button", { text: "Draw 1", onclick: () => act({ type: "draw", n: 1 }) }),
-      el("button", { text: "Stand all", onclick: () => act({ type: "standAll" }) }),
-      el("button", { class: "wide", text: `Win (${meP.stashCount}/${WIN_TARGET})`, disabled: V.altarUsed[me] ? "" : false, title: "Activate win · uses your altar this turn", onclick: () => act({ type: "activateWin" }) }),
-      el("button", { class: "wide", text: meP.handRevealed ? "Hide hand" : "Reveal hand", onclick: () => act({ type: "revealHand" }) }))));
-    if (setup) box.append(el("p", { class: "hint small", text: "Setup: shuffle, draw 4, reveal 3 tokens. Votes stay secret until both are Ready." }));
-    box.append(sideBox(V, me, solo ? meP.name : "You"));
-    if (solo) box.append(sideBox(V, opp(me), O.name));
-    else box.append(el("p", { class: "hint small oppstat", text: `${O.name}: ${setup ? sideStatus(O) : "in game"}` }));
     if (solo) box.append(el("button", { class: "ghost wide", text: `Switch to ${O.name}`, onclick: () => { ctl.soloActing = opp(ctl.soloActing); publish(); } }));
-    if (!solo) box.append(el("section", { class: "cbox" }, el("h3", { text: "Room" }), el("div", { class: "cgrid" },
-      armedBtn("spectate", "Spectate", "Ends game?", "Switch to spectator. This ends the game for both players.", becomeSpectator),
-      ctl.mode === "host" ? endGameBtn() : null)));
+    renderRoomButtons(V);
+  }
+  // below the chat: Spectate (seated, online) and End game (host)
+  function renderRoomButtons(V) {
+    const box = $("#roombtns"); box.replaceChildren();
+    if (ctl.mode !== "host" && ctl.mode !== "guest") { box.hidden = true; return; }
+    if (!ctl.spectator) box.append(armedBtn("spectate", "Spectate", "Ends game?", "Switch to spectator. This ends the game for both players.", becomeSpectator));
+    if (ctl.mode === "host") box.append(endGameBtn());
+    box.hidden = !box.children.length;
   }
   // two-click buttons (confirm within 3 seconds)
   const armedAt = {};
@@ -1082,7 +1097,12 @@
 
   function renderHands(V, me) {
     const mh = $("#my-hand"), oh = $("#opp-hand");
-    mh.replaceChildren(el("span", { class: "lbl", text: `${V.players[me].name} · ${V.players[me].handCount}` }));
+    const handLbl = el("button", { class: "lbl hand-btn", text: `${V.players[me].name} · ${V.players[me].handCount} ▾`, title: "Hand options" });
+    handLbl.addEventListener("click", (e) => openMenu(e, `${V.players[me].name}'s hand · ${V.players[me].handCount}`, [
+      [V.players[me].handRevealed ? "Hide hand" : "Reveal hand", () => act({ type: "revealHand" })],
+      [["Draw 1", () => act({ type: "draw", n: 1 })], ["Draw 2", () => act({ type: "draw", n: 2 })]],
+    ]));
+    mh.replaceChildren(handLbl);
     for (const iid of V.players[me].hand) {
       if (!iid) { mh.append(el("img", { class: "back", src: back("card"), alt: "Card" })); continue; }   // hidden (spectator view)
       const n = objNode(V, iid); n.addEventListener("click", (e) => menuHand(e, V, me, iid)); mh.append(n);
@@ -1154,6 +1174,7 @@
       filter: ref.cardType === "Quarter" ? (s) => QUARTER_SLOTS.includes(s) : null, onPick: (slot) => act({ type: "summon", iid, slot }) })]);
     items.push(["Sacrifice", () => act({ type: "sacrifice", iid })]);
     items.push([["Deck top", () => act({ type: "toDeck", iid, where: "top" })], ["Deck bottom", () => act({ type: "toDeck", iid, where: "bottom" })]]);
+    items.push([V.players[p].handRevealed ? "Hide hand" : "Reveal hand", () => act({ type: "revealHand", ...(ctl.mode === "solo" ? { player: p } : {}) })]);
     openMenu(e, ref.name, items);
   }
   function menuArena(e, V, p, iid) {
@@ -1200,6 +1221,7 @@
     const P = V.players[p];
     openMenu(e, `${P.name}'s stash · ${P.stashCount}${top ? ` · top: ${REF[V.objects[top].ref].name}` : ""}`, [
       top ? ["Sacrifice top", () => act({ type: "sacrifice", iid: top })] : ["Empty", () => {}],
+      (p === ctl.me || ctl.mode === "solo") && V.phase === "play" ? [`Activate win (${P.stashCount}/${WIN_TARGET})`, () => act({ type: "activateWin" })] : null,
     ]);
   }
   function menuDeck(e, V, p) {
@@ -1274,8 +1296,11 @@
   function attachPreview(node, ref) {
     if (!canHover) return;
     const src = ref.inscriptionOfficial || ref.official || insFace(ref) || face(ref), wide = Boolean(ref.inscription);   // zoom: official layouts (inscription card for special tokens)
-    node.addEventListener("mouseenter", () => { pimg.src = src; preview.classList.toggle("wide", wide); preview.hidden = false; });
+    node.addEventListener("mouseenter", () => {
+      if (!overlayKind && !$("#game").hidden) { const pv = $("#pv-img"); pv.src = src; pv.alt = ref.name; $("#pv").classList.toggle("wide", wide); $("#pv").classList.add("has"); return; }
+      pimg.src = src; preview.classList.toggle("wide", wide); preview.hidden = false; });
     node.addEventListener("mousemove", (e) => {
+      if (preview.hidden) return;
       const w = wide ? 430 : 310, h = wide ? 215 : 440;
       let x = e.clientX + 18, y = e.clientY - h / 2;
       if (x + w > innerWidth) x = e.clientX - w - 18;

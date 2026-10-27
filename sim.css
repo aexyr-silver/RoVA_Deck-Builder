@@ -255,3 +255,26 @@ div.fieldtag { text-align: center; padding: 5px 8px; }
 .room-chat { max-height: 220px; min-height: 80px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
 .chat li.msg.spec .bubble { border-style: dashed; }
 .my-hand .back { width: calc(var(--cw) * .6); height: calc(var(--ch) * .6); border-radius: 3px; flex: none; }
+
+/* left column: big card preview on top, essentials below */
+.controls { overflow: hidden; }
+.pv { flex: 1 1 auto; min-height: 120px; display: flex; align-items: center; justify-content: center; position: relative; }
+.pv img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; filter: drop-shadow(0 6px 16px rgba(0,0,0,.35)); }
+.pv.has img { display: block; }
+.pv.has .pv-hint { display: none; }
+.pv-hint { color: var(--muted); font-size: 14px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; padding: 40px 12px; width: 100%; }
+#turnbox, #banner, #ctrlbox { flex: none; }
+#ctrlbox .big { width: 100%; font-size: 17px; padding: 10px; }
+.hand-btn { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; color: var(--muted); }
+.hand-btn:hover { border-color: var(--accent-2); color: var(--text); }
+/* tools beside the Fragment Recall Altar */
+.centre { grid-template-columns: 1fr auto auto auto 1fr; }
+.fra-tools { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.fra-tools button, .fra-tools .fieldtag { font-size: 12px; padding: 3px 8px; white-space: nowrap; }
+.fra-tools.left { align-items: flex-end; } .fra-tools.right { align-items: flex-start; }
+.roombtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: none; }
+.roombtns .danger-ghost { grid-column: auto; }
+.roombtns > :only-child { grid-column: 1 / -1; }
+.alert-box.go h2 { color: var(--accent-ink); }
+@media (max-width: 1000px) { .pv { min-height: 0; flex: none; } .pv img { max-height: 320px; } }
+@media (max-width: 1500px) { .fra-lbl { display: none; } }
