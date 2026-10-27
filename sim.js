@@ -769,6 +769,21 @@
   /* =================================================================== */
   /* Lobby: deck pickers                                                  */
   /* =================================================================== */
+  // a link that opens the playtest page and joins this room as a spectator
+  function watchLink() {
+    const code = (ctl.R && ctl.R.code) || (ctl.room && ctl.room.code); if (!code) return "";
+    return `${location.origin}${location.pathname}?watch=${encodeURIComponent(code)}`;
+  }
+  // opened from a watch link: join that room as a spectator straight away
+  function autoWatch() {
+    const code = (new URLSearchParams(location.search).get("watch") || "").trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(code)) return;
+    history.replaceState(null, "", location.pathname);        // a reload won't rejoin by itself
+    if (!$("#my-name").value.trim()) $("#my-name").value = "Spectator";
+    $("#join-code").value = code;
+    $("#join-msg").textContent = `Joining room ${code} as a spectator…`;
+    join("watch");
+  }
   function myName() { return ($("#my-name").value.trim() || "Player 1").slice(0, 24); }
   function buildPicker(k) {
     const box = $(`#deck-pick-${k}`);
@@ -1292,6 +1307,10 @@
     $("#btn-host").addEventListener("click", host);
     $("#btn-start-online").addEventListener("click", startOnline);
     $("#btn-copy-code").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#room-code2").textContent); toast("Code copied"); } catch (_) { toast("Copy failed. Select the code."); } });
+    $("#btn-copy-link").addEventListener("click", async () => {
+      const url = watchLink(); if (!url) return;
+      try { await navigator.clipboard.writeText(url); toast("Watch link copied"); } catch (_) { prompt("Copy this link:", url); }
+    });
     $("#btn-join").addEventListener("click", () => join("play"));
     $("#btn-watch").addEventListener("click", () => join("watch"));
     $("#join-code").addEventListener("keydown", (e) => { if (e.key === "Enter") join("play"); });
@@ -1318,7 +1337,7 @@
     for (const t of data.tokens) { t.kind = "token"; REF[t.id] = t; }
     if (data.backs) { BACKS.card = data.backs.card || BACKS.card; BACKS.token = data.backs.token || BACKS.token; }
     BACKS_DARK = data.backsDark || null;
-    wire(); buildPicker(0); buildPicker(1);
+    wire(); buildPicker(0); buildPicker(1); autoWatch();
   }).catch(() => { toast("Card data failed to load"); });
 
   // exposed for automated tests only

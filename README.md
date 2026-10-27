@@ -119,7 +119,7 @@ A virtual table for two players. It's a **sandbox with helpers**: you move cards
 
 **Play online with someone (two computers):**
 
-1. One player chooses what **spectators see** (public info only, or everything including hands and peeks), clicks **Create room** and gets a 6-character **room code**. **Copy** puts it on the clipboard. Share the code.
+1. One player chooses what **spectators see** (public info only, or everything including hands and peeks), clicks **Create room** and gets a 6-character **room code**. **Copy code** puts it on the clipboard. **Copy watch link** copies a link to the playtest page with the room code in it (`…/sim.html?watch=CODE`): anyone who opens it joins that room as a spectator straight away, named "Spectator" if they haven't set a name. They can still take an open seat between games.
 2. Others type the code under **Join** and click **Join** to take an open seat, or **Watch** to join as a spectator (up to 8). Players need a deck chosen; spectators don't.
 3. The lobby turns into the **room**: two seats, the spectator list and a chat. When both seats are filled, the host clicks **Start game**. This opens the table for everyone; nothing is shuffled or drawn until each player does their own setup (see [Before turn 1](#3-before-turn-1-setup-and-ready)).
 
