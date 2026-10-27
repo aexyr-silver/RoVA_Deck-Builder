@@ -6,7 +6,7 @@
 <title>RoVA Playtest</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="stylesheet" href="style.css?v=12">
-<link rel="stylesheet" href="sim.css?v=12">
+<link rel="stylesheet" href="sim.css?v=13">
 </head>
 <body class="sim">
 <header class="topbar">
@@ -33,23 +33,20 @@
     <div class="deck-pick" id="deck-pick-0"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="play-panel">
     <h2>2 · Play</h2>
     <div class="play-modes">
       <div class="mode-card">
         <h3>Host</h3>
-        <p class="hint">Get a code for your opponent.</p>
+        <p class="hint">Get a code to share. Others can play or watch.</p>
+        <label class="field inline">Spectators see
+          <select id="spec-view"><option value="public">Public info only</option><option value="full">Everything (hands, peeks)</option></select></label>
         <button id="btn-host" class="primary">Create room</button>
-        <div id="host-box" hidden>
-          <p>Room code: <strong id="room-code" class="code">······</strong> <button id="btn-copy-code" class="ghost">Copy</button></p>
-          <p id="host-wait" class="hint">Waiting for opponent…</p>
-          <button id="btn-start-online" class="primary" disabled>Start game</button>
-        </div>
       </div>
       <div class="mode-card">
         <h3>Join</h3>
-        <p class="hint">Enter your opponent's code.</p>
-        <div class="row-inline"><input id="join-code" type="text" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="btn-join" class="primary">Join</button></div>
+        <p class="hint">Enter a room code. Join takes an open seat; Watch spectates.</p>
+        <div class="row-inline"><input id="join-code" type="text" maxlength="6" placeholder="CODE" aria-label="Room code"><button id="btn-join" class="primary">Join</button><button id="btn-watch">Watch</button></div>
         <p id="join-msg" class="hint"></p>
       </div>
       <div class="mode-card">
@@ -60,6 +57,25 @@
       </div>
     </div>
     <p class="hint small">Online play is browser to browser (via PeerJS).</p>
+  </section>
+
+  <!-- waiting room (online), shown instead of "2 · Play" -->
+  <section class="panel room" id="room-panel" hidden>
+    <h2>2 · Room <strong id="room-code2" class="code">······</strong> <button id="btn-copy-code" class="ghost">Copy</button></h2>
+    <p id="room-status" class="hint"></p>
+    <h3>Players</h3>
+    <ul id="room-seats" class="seats"></ul>
+    <h3>Spectators</h3>
+    <ul id="room-specs" class="specs"></ul>
+    <div id="room-host">
+      <label class="field inline">Spectators see
+        <select id="room-view"><option value="public">Public info only</option><option value="full">Everything (hands, peeks)</option></select></label>
+      <button id="btn-start-online" class="primary" disabled>Start game</button>
+    </div>
+    <p id="room-view-guest" class="hint small"></p>
+    <h3>Chat</h3>
+    <ol id="room-chat" class="chat room-chat"></ol>
+    <form id="room-say-form" class="say"><input id="room-say" type="text" maxlength="300" placeholder="Message" aria-label="Chat message" autocomplete="off"><button class="primary">Send</button></form>
   </section>
 </main>
 
@@ -103,6 +119,6 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script src="vendor/peerjs-1.5.5.min.js"></script>
-<script src="sim.js?v=19"></script>
+<script src="sim.js?v=20"></script>
 </body>
 </html>

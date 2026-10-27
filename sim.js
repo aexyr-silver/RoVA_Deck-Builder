@@ -461,9 +461,12 @@
   const ctl = { mode: null, me: 0, S: null, V: null, peer: null, conn: null, guestDeck: null, guestName: "", soloActing: 0 };
 
   function act(a) {
-    if (ctl.mode === "guest") { if (ctl.conn && ctl.conn.open) ctl.conn.send({ t: "action", a }); else toast("Not connected"); return; }
+    if (ctl.spectator && a.type !== "say") { toast("Spectators can't act"); return; }
+    if (ctl.mode === "guest") { send({ t: "action", a }); return; }
+    if (a.type === "say") { addChat(ctl.myMid, a.text); publish(); return; }
     if (!ctl.S) return;
-    const actor = ctl.mode === "solo" ? ctl.soloActing : 0;
+    const actor = ctl.mode === "solo" ? ctl.soloActing : ctl.room.seats.indexOf("host");
+    if (actor < 0) return;
     const before = ctl.S.phase;
     runAction(ctl.S, actor, a, ctl.mode === "solo");
     if (ctl.mode === "solo" && (a.type === "endTurn" || a.type === "undoReq" || (before === "setup" && ctl.S.phase === "play"))) ctl.soloActing = ctl.S.turn;
@@ -510,15 +513,92 @@
     syncUndo(S);
   }
   function publish() {
-    if (ctl.mode === "host" && ctl.conn && ctl.conn.open) ctl.conn.send({ t: "view", v: viewFor(ctl.S, 1) });
-    const me = ctl.mode === "solo" ? ctl.soloActing : 0;
-    ctl.V = viewFor(ctl.S, me, ctl.mode === "solo"); ctl.me = me;
+    const Rm = ctl.room;
+    if (ctl.mode === "host") {
+      if (ctl.S) for (const [mid, m] of Object.entries(Rm.members)) if (m.conn && m.conn.open) m.conn.send({ t: "view", v: viewForMember(mid) });
+      broadcastRoom();
+    }
+    if (!ctl.S) return;
+    if (ctl.mode === "solo") { ctl.me = ctl.soloActing; ctl.spectator = false; ctl.V = viewFor(ctl.S, ctl.me, true); ctl.V.chat = Rm.chat.slice(-150); }
+    else { const seat = Rm.seats.indexOf("host"); ctl.spectator = seat < 0; ctl.me = seat < 0 ? 0 : seat; ctl.V = viewForMember("host"); }
+    if ($("#game").hidden) showGame();
     render();
+  }
+  // what one room member sees: their own seat's view, or the spectator view the host chose
+  function viewForMember(mid) {
+    const Rm = ctl.room, seat = Rm.seats.indexOf(mid);
+    const V = seat >= 0 ? viewFor(ctl.S, seat) : viewFor(ctl.S, -1, Rm.view === "full");
+    V.chat = Rm.chat.slice(-150); V.youSeat = seat;
+    V.specCount = Object.keys(Rm.members).filter((k) => !Rm.seats.includes(k)).length;
+    return V;
   }
 
   function netStatus(text, cls) { const n = $("#net-status"); n.hidden = !text; n.textContent = text || ""; n.className = `pill ${cls || ""}`; }
 
   function code6() { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s = ""; for (let i = 0; i < 6; i++) s += A[Math.floor(Math.random() * A.length)]; return s; }
+
+  /* ------------------------------------------------------------------ */
+  /* Room (online): the host's browser keeps two seats, spectators and the  */
+  /* chat. Seats only change between games; a seated player leaving or     */
+  /* switching to spectator ends the game and the room waits again.        */
+  /* ------------------------------------------------------------------ */
+  const MAX_SPECS = 8;
+  ctl.room = null; ctl.myMid = null; ctl.spectator = false; ctl.R = null;
+  function newRoom(extra) { return Object.assign({ seats: [null, null], members: {}, chat: [], cseq: 0, view: "public" }, extra); }
+  function addChat(mid, text) {
+    const Rm = ctl.room; if (!Rm || !text) return;
+    const m = Rm.members[mid]; if (!m) return;
+    const seat = Rm.seats.indexOf(mid);
+    Rm.chat.push({ mid, name: m.name, who: ctl.mode === "solo" ? 0 : seat >= 0 ? seat : "s", spec: ctl.mode !== "solo" && seat < 0, text: String(text).slice(0, 300), n: ++Rm.cseq, at: Date.now() });
+    if (Rm.chat.length > 300) Rm.chat.splice(0, Rm.chat.length - 300);
+  }
+  function send(msg) { if (ctl.conn && ctl.conn.open) ctl.conn.send(msg); else toast("Not connected"); }
+  function roomView(forMid) {
+    const Rm = ctl.room;
+    const who = (mid) => (mid ? { mid, name: Rm.members[mid].name } : null);
+    return { code: Rm.code, view: Rm.view, playing: !!ctl.S, you: forMid, seats: Rm.seats.map(who),
+      specs: Object.keys(Rm.members).filter((k) => !Rm.seats.includes(k)).map(who), chat: Rm.chat.slice(-150) };
+  }
+  function broadcastRoom() {
+    const Rm = ctl.room; if (!Rm || ctl.mode !== "host") return;
+    for (const [mid, m] of Object.entries(Rm.members)) if (m.conn && m.conn.open) m.conn.send({ t: "room", r: roomView(mid) });
+    ctl.R = roomView("host"); renderRoom();
+  }
+  function seatMember(mid, deckText_, name) {      // host side: put a member in the first open seat
+    const Rm = ctl.room, m = Rm.members[mid];
+    if (ctl.S) return "Seats change only between games.";
+    if (Rm.seats.includes(mid)) return null;
+    const d = parseDeck(deckText_ || "");
+    if (!d.cards.length || !d.tokens.length) return "Your deck needs summons and tokens.";
+    const k = Rm.seats.indexOf(null); if (k < 0) return "Both seats are taken.";
+    m.deck = d; if (name) m.name = String(name).slice(0, 24);
+    Rm.seats[k] = mid; return null;
+  }
+  function unseatMember(mid, why) {               // host side: seat → spectator (ends a running game)
+    const Rm = ctl.room, k = Rm.seats.indexOf(mid); if (k < 0) return;
+    const name = Rm.members[mid] ? Rm.members[mid].name : "A player";
+    Rm.seats[k] = null;
+    if (ctl.S) endGame(`${name} ${why}. The game ends.`);
+  }
+  function memberLeft(mid, said) {
+    const Rm = ctl.room; if (!Rm || !Rm.members[mid]) return;
+    const name = Rm.members[mid].name, seated = Rm.seats.includes(mid);
+    if (seated) unseatMember(mid, said ? "left the room" : "disconnected");
+    delete Rm.members[mid];
+    toast(`${name} ${said ? "left" : "disconnected"}`);
+    broadcastRoom();
+  }
+  function endGame(text) {                         // host side: back to the waiting room
+    ctl.S = null; ctl.hist = [];
+    for (const m of Object.values(ctl.room.members)) if (m.conn && m.conn.open) m.conn.send({ t: "ended", text });
+    backToRoom(text); broadcastRoom();
+  }
+  function backToRoom(text) {
+    ctl.V = null; ui.pick = null; closeOverlay(); closeMenu();
+    $("#game").hidden = true; $("#lobby").hidden = false; document.body.classList.remove("in-game");
+    if (text) showAlert("Game ended", text);
+    renderRoom();
+  }
 
   function host() {
     if (ctl.mode === "guest") { toast("Joined in this tab. Reload to host."); return; }
@@ -526,96 +606,139 @@
     const deck = readDeck(0); if (!deck) return;
     if (typeof Peer === "undefined") { toast("Online play couldn't load"); return; }
     const code = code6();
-    ctl.mode = "host";
+    ctl.mode = "host"; ctl.myMid = "host";
+    ctl.room = newRoom({ code, view: $("#spec-view").value === "full" ? "full" : "public" });
+    ctl.room.members.host = { name: myName(), deck, conn: null };
+    ctl.room.seats[0] = "host";
     netStatus("Creating room…");
     ctl.peer = new Peer(`rova-pt-${code}`);
-    ctl.peer.on("open", () => {
-      $("#host-box").hidden = false; $("#room-code").textContent = code; netStatus("Room open", "ok");
-      $("#btn-host").disabled = true;
-      $("#btn-join").disabled = true; $("#join-code").disabled = true;
-      $("#join-msg").textContent = "Hosting in this tab.";
-    });
+    ctl.peer.on("open", () => { netStatus("Room open", "ok"); broadcastRoom(); });
     ctl.peer.on("error", (e) => { netStatus("Connection problem", "bad"); toast(`Online error: ${e.type || e}`); });
     ctl.peer.on("connection", (conn) => {
-      if (ctl.conn && ctl.conn.open) { conn.on("open", () => { conn.send({ t: "error", msg: "Room is full." }); setTimeout(() => conn.close(), 300); }); return; }
-      ctl.conn = conn;
+      const mid = conn.peer;
       conn.on("data", (msg) => {
         if (!msg || typeof msg !== "object") return;
+        const Rm = ctl.room;
         if (msg.t === "hello") {
-          if (msg.client === CLIENT_ID) { conn.send({ t: "error", msg: "That's your own room." }); setTimeout(() => conn.close(), 300); ctl.conn = null; return; }
-          const parsed = parseDeck(msg.deck);
-          if (!parsed.cards.length || !parsed.tokens.length) { conn.send({ t: "error", msg: "Deck needs summons and tokens." }); return; }
-          ctl.guestDeck = parsed; ctl.guestName = String(msg.name || "Guest").slice(0, 24);
-          $("#host-wait").textContent = `${ctl.guestName} joined (${parsed.cards.length} summons, ${parsed.tokens.length} tokens).`;
-          $("#btn-start-online").disabled = false;
-          if (ctl.S) publish();
-        } else if (msg.t === "action" && ctl.S) { runAction(ctl.S, 1, msg.a, false); publish(); }
-        else if (msg.t === "bye") opponentLeft(true);
+          if (msg.client === CLIENT_ID) { conn.send({ t: "error", msg: "That's your own room." }); setTimeout(() => conn.close(), 300); return; }
+          const specs = Object.keys(Rm.members).filter((k) => !Rm.seats.includes(k)).length;
+          const name = String(msg.name || "Guest").slice(0, 24);
+          Rm.members[mid] = { name, deck: null, conn, client: msg.client };
+          let seated = false;
+          if (msg.want === "play" && !ctl.S && Rm.seats.includes(null)) seated = !seatMember(mid, msg.deck, name);
+          if (!seated && specs >= MAX_SPECS) { delete Rm.members[mid]; conn.send({ t: "error", msg: "Room is full." }); setTimeout(() => conn.close(), 300); return; }
+          toast(`${name} joined${seated ? "" : " as a spectator"}`);
+          broadcastRoom();
+          if (ctl.S) conn.send({ t: "view", v: viewForMember(mid) });
+        } else if (!Rm.members[mid]) return;
+        else if (msg.t === "action" && msg.a) {
+          if (msg.a.type === "say") addChat(mid, msg.a.text);
+          else { const seat = Rm.seats.indexOf(mid); if (seat >= 0 && ctl.S) runAction(ctl.S, seat, msg.a, false); }
+          publish();
+        } else if (msg.t === "seat") {
+          const err = seatMember(mid, msg.deck, msg.name);
+          if (err) conn.send({ t: "error", msg: err, soft: true }); else toast(`${Rm.members[mid].name} took a seat`);
+          broadcastRoom();
+        } else if (msg.t === "spectate") { unseatMember(mid, "switched to spectator"); broadcastRoom(); }
+        else if (msg.t === "bye") memberLeft(mid, true);
       });
-      conn.on("close", () => opponentLeft(false));
+      conn.on("close", () => memberLeft(mid, false));
     });
   }
-  function opponentLeft(said) {
-    if (!ctl.conn && !said) return;
-    ctl.conn = null;
-    netStatus("Opponent left", "bad");
-    if (ctl.S) {
-      log(ctl.S, "sys", `${ctl.S.players[1].name} ${said ? "left the room" : "disconnected"}.`); publish();
-      if (said) showAlert("Opponent left", `${ctl.S.players[1].name} left the room. Press Leave to go back to the lobby.`);
-      else toast("Opponent disconnected");
-    } else {   // still in the lobby: wait for someone else
-      ctl.guestDeck = null; $("#btn-start-online").disabled = true; $("#host-wait").textContent = "Opponent left. Waiting for opponent…";
-    }
-  }
+  // host's own room buttons
+  function hostTakeSeat() { const d = readDeck(0); if (!d) return; ctl.room.members.host.name = myName(); const err = seatMember("host", deckText(0), myName()); if (err) toast(err); broadcastRoom(); }
+  function hostSpectate() { unseatMember("host", "switched to spectator"); broadcastRoom(); if (ctl.S) publish(); }
   function startOnline() {
-    const mine = readDeck(0); if (!mine || !ctl.guestDeck) return;
-    ctl.S = newGame([mine, ctl.guestDeck], [myName(), ctl.guestName]); ctl.hist = [];
-    showGame(); publish();
+    const Rm = ctl.room; if (!Rm || ctl.S) return;
+    if (Rm.seats.includes(null)) { toast("Both seats need a player"); return; }
+    if (Rm.seats.includes("host")) { const d = readDeck(0); if (!d) return; Rm.members.host.deck = d; Rm.members.host.name = myName(); }
+    const [a, b] = Rm.seats.map((mid) => Rm.members[mid]);
+    ctl.S = newGame([a.deck, b.deck], [a.name, b.name]); ctl.hist = [];
+    publish();
   }
+
   let hostLeft = false;
-  function join() {
+  function join(want) {
     const code = $("#join-code").value.trim().toUpperCase();
-    if (ctl.mode === "host") {
-      $("#join-msg").textContent = code === $("#room-code").textContent
-        ? "That's your own room."
-        : "Hosting in this tab. Reload to join.";
-      return;
-    }
+    if (ctl.mode === "host") { $("#join-msg").textContent = code === (ctl.room && ctl.room.code) ? "That's your own room." : "Hosting in this tab. Reload to join."; return; }
     if (ctl.mode === "guest") { $("#join-msg").textContent = "Already joined."; return; }
-    const deck = readDeck(0); if (!deck) return;
+    if (want === "play" && !readDeck(0)) return;
     if (code.length !== 6) { $("#join-msg").textContent = "Code must be 6 characters."; return; }
     if (typeof Peer === "undefined") { toast("Online play couldn't load"); return; }
-    ctl.mode = "guest"; ctl.me = 1;
+    ctl.mode = "guest";
     $("#btn-host").disabled = true;
-    // a failed join (before the game opens) lets the player try again or host instead
-    const giveUp = () => { if (!$("#game").hidden) return; try { ctl.peer && ctl.peer.destroy(); } catch (_) {} ctl.peer = null; ctl.conn = null; ctl.mode = null; $("#btn-host").disabled = false; };
+    // a failed join (before entering the room) lets the player try again or host instead
+    const giveUp = () => { if (ctl.R) return; try { ctl.peer && ctl.peer.destroy(); } catch (_) {} ctl.peer = null; ctl.conn = null; ctl.mode = null; $("#btn-host").disabled = false; };
     netStatus("Connecting…");
     ctl.peer = new Peer();
     ctl.peer.on("open", () => {
       const conn = ctl.peer.connect(`rova-pt-${code}`, { reliable: true });
       ctl.conn = conn;
       conn.on("open", () => {
-        netStatus("Connected", "ok"); $("#join-msg").textContent = "Connected. Waiting for host…";
-        conn.send({ t: "hello", name: myName(), deck: deckText(0), client: CLIENT_ID });
+        netStatus("Connected", "ok"); $("#join-msg").textContent = "Connected…";
+        conn.send({ t: "hello", name: myName(), deck: deckText(0), client: CLIENT_ID, want });
       });
       conn.on("data", (msg) => {
         if (!msg || typeof msg !== "object") return;
-        if (msg.t === "view") { ctl.V = msg.v; if ($("#game").hidden) showGame(); render(); }
-        else if (msg.t === "error") { $("#join-msg").textContent = msg.msg; toast(msg.msg); netStatus("Not joined", "bad"); giveUp(); }
-        else if (msg.t === "bye") { hostLeft = true; netStatus("Host left", "bad"); if ($("#game").hidden) { $("#join-msg").textContent = "The host closed the room."; giveUp(); } else showAlert("Host left", "The host left the room. The game has ended. Press Leave to go back to the lobby."); }
+        if (msg.t === "room") { ctl.R = msg.r; ctl.myMid = msg.r.you; if ($("#game").hidden) renderRoom(); else if (ctl.V) { ctl.V.chat = msg.r.chat; renderLog(ctl.V); } }
+        else if (msg.t === "view") {
+          ctl.V = msg.v; ctl.spectator = msg.v.youSeat < 0; ctl.me = ctl.spectator ? 0 : msg.v.youSeat;
+          if ($("#game").hidden) showGame();
+          render();
+        }
+        else if (msg.t === "ended") backToRoom(msg.text);
+        else if (msg.t === "error") { toast(msg.msg); if (!msg.soft) { $("#join-msg").textContent = msg.msg; netStatus("Not joined", "bad"); giveUp(); } }
+        else if (msg.t === "bye") {
+          hostLeft = true; netStatus("Host left", "bad");
+          if (!ctl.R) { $("#join-msg").textContent = "The host closed the room."; giveUp(); }
+          else showAlert("Host left", "The host closed the room. Press Leave to go back to the lobby.");
+        }
       });
-      conn.on("close", () => { if ($("#game").hidden) { giveUp(); return; } if (hostLeft) return; netStatus("Disconnected", "bad"); toast("Host disconnected"); });
+      conn.on("close", () => { if (!ctl.R) { giveUp(); return; } if (hostLeft) return; netStatus("Disconnected", "bad"); toast("Host disconnected"); });
     });
     ctl.peer.on("error", (e) => { netStatus("Couldn't connect", "bad"); $("#join-msg").textContent = e.type === "peer-unavailable" ? "No room with that code." : `Connection error: ${e.type || e}`; giveUp(); });
   }
+  // seat buttons, for host and guests alike
+  function takeSeat() { if (ctl.mode === "host") hostTakeSeat(); else { if (!readDeck(0)) return; send({ t: "seat", deck: deckText(0), name: myName() }); } }
+  function becomeSpectator() { if (ctl.mode === "host") hostSpectate(); else send({ t: "spectate" }); }
+
+  /* the waiting room, shown in the lobby page between games */
+  function renderRoom() {
+    const r = ctl.R, panel = $("#room-panel");
+    if (!r || (ctl.mode !== "host" && ctl.mode !== "guest")) { panel.hidden = true; return; }
+    panel.hidden = false; $("#play-panel").hidden = true;
+    $("#room-code2").textContent = r.code || "······";
+    const mySeat = r.seats.findIndex((x) => x && x.mid === r.you);
+    const seats = $("#room-seats"); seats.replaceChildren();
+    r.seats.forEach((x, k) => {
+      const li = el("li", { class: `seat${x ? "" : " open"}${x && x.mid === r.you ? " me" : ""}` },
+        el("span", { class: "sn", text: `Seat ${k + 1}` }), el("span", { class: "who", text: x ? `${x.name}${x.mid === r.you ? " (you)" : ""}${x.mid === "host" ? " · host" : ""}` : "Open" }));
+      if (!r.playing && !x && mySeat < 0) li.append(el("button", { class: "primary", text: "Take seat", onclick: takeSeat }));
+      if (!r.playing && x && x.mid === r.you) li.append(el("button", { class: "ghost", text: "Spectate", onclick: becomeSpectator }));
+      seats.append(li);
+    });
+    const sp = $("#room-specs"); sp.replaceChildren();
+    if (!r.specs.length) sp.append(el("li", { class: "hint small", text: "No spectators" }));
+    for (const x of r.specs) sp.append(el("li", { text: `${x.name}${x.mid === r.you ? " (you)" : ""}${x.mid === "host" ? " · host" : ""}` }));
+    const isHost = ctl.mode === "host";
+    $("#room-host").hidden = !isHost;
+    $("#btn-start-online").disabled = !isHost || r.playing || r.seats.includes(null);
+    $("#room-view").value = r.view; $("#room-view").disabled = !isHost || r.playing;
+    $("#room-view-guest").hidden = isHost;
+    $("#room-view-guest").textContent = `Spectators see: ${r.view === "full" ? "everything" : "public info only"}`;
+    $("#room-status").textContent = r.playing ? "A game is in progress. Seats open between games." : r.seats.includes(null) ? "Waiting for players…" : isHost ? "Both seats are filled. Start when ready." : "Waiting for the host to start…";
+    renderChat($("#room-chat"), r.chat, "#room-say");
+  }
+
   function solo() {
     const a = readDeck(0), b = readDeck(1); if (!a || !b) return;
-    ctl.mode = "solo";
+    ctl.mode = "solo"; ctl.myMid = "host";
+    ctl.room = newRoom({}); ctl.room.members.host = { name: myName() }; ctl.room.seats = ["host", null];
     ctl.S = newGame([a, b], [myName(), "Player 2"]); ctl.hist = [];
     ctl.soloActing = 0;
     showGame(); publish();
   }
-  // Leave the room: tell the other player, then go back to the lobby (decks and name are kept in this browser)
+  // Leave the room: tell the others, then go back to the lobby (decks and name are kept in this browser)
   let leaving = false, leaveArm = 0;
   function leaveRoom() {
     const btn = $("#btn-leave");
@@ -625,7 +748,10 @@
       return;
     }
     leaving = true;
-    try { if (ctl.conn && ctl.conn.open) ctl.conn.send({ t: "bye" }); } catch (_) {}
+    try {
+      if (ctl.mode === "host" && ctl.room) { for (const m of Object.values(ctl.room.members)) if (m.conn && m.conn.open) m.conn.send({ t: "bye" }); }
+      else if (ctl.conn && ctl.conn.open) ctl.conn.send({ t: "bye" });
+    } catch (_) {}
     setTimeout(() => { try { ctl.peer && ctl.peer.destroy(); } catch (_) {} location.reload(); }, 250);
   }
   function updateLeave() { $("#btn-leave").hidden = !(ctl.mode === "solo" || ctl.mode === "host" || ctl.mode === "guest"); }
@@ -724,7 +850,13 @@
     const b = $("#banner"); b.replaceChildren();
     const parts = [];
     const req = V.undo && V.undo.req;
-    if (ui.pick) parts.push(el("span", { text: ui.pick.label }), el("button", { text: "Cancel", onclick: () => { ui.pick = null; render(); } }));
+    if (ctl.spectator) {
+      const n = V.specCount || 0;
+      parts.push(el("span", { text: `Spectating · ${n} watching` }));
+      for (const p of [0, 1]) if (V.players[p].pendingGen) parts.push(el("span", { text: `· ${V.players[p].name}: generate ${V.players[p].pendingGen}` }));
+      if (req) parts.push(el("span", { text: `· ${V.players[req.by].name} asks to undo` }));
+    }
+    else if (ui.pick) parts.push(el("span", { text: ui.pick.label }), el("button", { text: "Cancel", onclick: () => { ui.pick = null; render(); } }));
     else if (req && req.by === me) parts.push(el("span", { text: `Waiting for approval to undo: ${req.label}` }), el("button", { text: "Cancel", onclick: () => act({ type: "undoCancel" }) }));
     else if (req) parts.push(el("span", { text: `${V.players[req.by].name} asks to undo: ${req.label}` }),
       el("button", { text: "Allow", onclick: () => act({ type: "undoAns", ok: true }) }), el("button", { text: "Refuse", onclick: () => act({ type: "undoAns", ok: false }) }));
@@ -892,11 +1024,19 @@
       el("div", { class: "cgrid" },
         el("div", { class: `fieldtag wide${V.field ? " locked" : ""}`, text: V.field ? `Field: ${V.field} 🔒` : "Field: by vote",
           title: V.field ? "Locked by vote" : "Set by vote" }),
-        el("button", { class: "ghost", text: "Coin flip", onclick: () => act({ type: "coin" }) }),
-        el("button", { class: "ghost", text: `Undo${V.undo && V.undo.count ? ` (${V.undo.count})` : ""}`, disabled: V.undo && V.undo.count && !V.undo.req ? false : "",
+        ctl.spectator ? null : el("button", { class: "ghost", text: "Coin flip", onclick: () => act({ type: "coin" }) }),
+        ctl.spectator ? null : el("button", { class: "ghost", text: `Undo${V.undo && V.undo.count ? ` (${V.undo.count})` : ""}`, disabled: V.undo && V.undo.count && !V.undo.req ? false : "",
           title: V.undo && V.undo.count ? `Undo: ${V.undo.label}${ctl.mode === "solo" ? "" : " (opponent must allow)"}` : "Nothing to undo",
           onclick: () => act({ type: "undoReq" }) })));
     const box = $("#ctrlbox"); box.replaceChildren();
+    if (ctl.spectator) {         // spectators only watch
+      box.append(el("section", { class: "cbox" }, el("h3", { text: "Spectating" }),
+        el("p", { class: "hint small", text: `${V.players[0].name}: ${setup ? sideStatus(V.players[0]) : "in game"}` }),
+        el("p", { class: "hint small", text: `${V.players[1].name}: ${setup ? sideStatus(V.players[1]) : "in game"}` }),
+        el("p", { class: "hint small", text: "Seats open between games. You can chat." })));
+      if (ctl.mode === "host") box.append(endGameBtn());
+      return;
+    }
     if (!setup) box.append(el("section", { class: "cbox" }, el("h3", { text: V.step === "attack" ? "Attack phase" : "Summon phase" }), el("div", { class: "cgrid" },
       V.step === "attack"
         ? el("button", { class: "primary wide", text: "End turn", disabled: myTurn ? false : "", onclick: () => act({ type: "endTurn" }) })
@@ -910,12 +1050,26 @@
     if (solo) box.append(sideBox(V, opp(me), O.name));
     else box.append(el("p", { class: "hint small oppstat", text: `${O.name}: ${setup ? sideStatus(O) : "in game"}` }));
     if (solo) box.append(el("button", { class: "ghost wide", text: `Switch to ${O.name}`, onclick: () => { ctl.soloActing = opp(ctl.soloActing); publish(); } }));
+    if (!solo) box.append(el("section", { class: "cbox" }, el("h3", { text: "Room" }), el("div", { class: "cgrid" },
+      armedBtn("spectate", "Spectate", "Ends game?", "Switch to spectator. This ends the game for both players.", becomeSpectator),
+      ctl.mode === "host" ? endGameBtn() : null)));
   }
+  // two-click buttons (confirm within 3 seconds)
+  const armedAt = {};
+  function armedBtn(key, label, confirmLabel, title, onConfirm) {
+    const armed = armedAt[key] && Date.now() - armedAt[key] < 3000;
+    return el("button", { class: `danger-ghost${armed ? " armed" : ""}`, text: armed ? confirmLabel : label, title, onclick: () => {
+      if (armedAt[key] && Date.now() - armedAt[key] < 3000) { armedAt[key] = 0; onConfirm(); return; }
+      armedAt[key] = Date.now(); render(); setTimeout(() => { if (armedAt[key]) { armedAt[key] = 0; if (ctl.V) render(); } }, 3100);
+    } });
+  }
+  function endGameBtn() { return armedBtn("endgame", "End game", "End it?", "Host only: end the game and return everyone to the room.", () => endGame("The host ended the game.")); }
 
   function renderHands(V, me) {
     const mh = $("#my-hand"), oh = $("#opp-hand");
     mh.replaceChildren(el("span", { class: "lbl", text: `${V.players[me].name} · ${V.players[me].handCount}` }));
     for (const iid of V.players[me].hand) {
+      if (!iid) { mh.append(el("img", { class: "back", src: back("card"), alt: "Card" })); continue; }   // hidden (spectator view)
       const n = objNode(V, iid); n.addEventListener("click", (e) => menuHand(e, V, me, iid)); mh.append(n);
     }
     const O = V.players[opp(me)];
@@ -936,25 +1090,29 @@
     }
     const newest = V.log.length ? V.log[V.log.length - 1].n : 0;
     if (newest !== lastLogSeq) { ol.scrollTop = ol.scrollHeight; lastLogSeq = newest; }
-    // chat
-    const cl = $("#chat"); cl.replaceChildren();
-    for (const m of V.chat || []) {
-      const mine = m.who === ctl.me && ctl.mode !== "solo";
+    renderChat($("#chat"), V.chat || [], "#say");
+  }
+  function renderChat(cl, chat, inputSel) {
+    cl.replaceChildren();
+    for (const m of chat) {
+      const mine = m.mid === ctl.myMid && ctl.mode !== "solo";
       const t = new Date(m.at); const hh = String(t.getHours()).padStart(2, "0"), mm = String(t.getMinutes()).padStart(2, "0");
-      cl.append(el("li", { class: `msg${mine ? " mine" : ""} p${m.who}` },
-        el("span", { class: "meta", text: `${m.name} · ${hh}:${mm}` }), el("span", { class: "bubble", text: m.text })));
+      cl.append(el("li", { class: `msg${mine ? " mine" : ""} p${m.who}${m.spec ? " spec" : ""}` },
+        el("span", { class: "meta", text: `${m.name}${m.spec ? " · spectator" : ""} · ${hh}:${mm}` }), el("span", { class: "bubble", text: m.text })));
     }
-    const cNewest = V.chat && V.chat.length ? V.chat[V.chat.length - 1].n : 0;
+    const cNewest = chat.length ? chat[chat.length - 1].n : 0;
     if (cNewest !== lastChatSeq) {
-      cl.scrollTop = cl.scrollHeight; lastChatSeq = cNewest;
-      const last = V.chat[V.chat.length - 1];
-      if (last && last.who !== ctl.me && ctl.mode !== "solo" && document.activeElement !== $("#say")) toast(`${last.name}: ${last.text.slice(0, 60)}`);
+      cl.scrollTop = cl.scrollHeight;
+      const last = chat[chat.length - 1];
+      if (lastChatSeq && last && last.mid !== ctl.myMid && ctl.mode !== "solo" && document.activeElement !== $(inputSel)) toast(`${last.name}: ${last.text.slice(0, 60)}`);
+      lastChatSeq = cNewest;
     }
   }
 
   /* ---------- menus ---------- */
   function openMenu(e, title, items) {
     e.stopPropagation();
+    if (ctl.spectator) { toast("Spectators can't act"); return; }
     if (ctl.V && ctl.V.phase === "setup") { toast("Game not started yet"); return; }
     const m = $("#menu"); m.replaceChildren(el("div", { class: "mt", text: title }));
     for (const it of items) {
@@ -1070,7 +1228,7 @@
     $("#overlay").hidden = false;
   }
   function renderPeek(V, me) {
-    const pk = V.players[me].peek;
+    const pk = ctl.spectator ? null : V.players[me].peek;
     if (overlayKind && overlayKind.t === "abyss") { drawOverlay(); return; }
     if (!pk) { if (overlayKind && overlayKind.t === "peek") closeOverlay(); return; }
     overlayKind = { t: "peek" };
@@ -1133,9 +1291,12 @@
     const nmIn = $("#my-name"); nmIn.value = store.get("rova-sim-name") || ""; nmIn.addEventListener("input", () => store.set("rova-sim-name", nmIn.value));
     $("#btn-host").addEventListener("click", host);
     $("#btn-start-online").addEventListener("click", startOnline);
-    $("#btn-copy-code").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#room-code").textContent); toast("Code copied"); } catch (_) { toast("Copy failed. Select the code."); } });
-    $("#btn-join").addEventListener("click", join);
-    $("#join-code").addEventListener("keydown", (e) => { if (e.key === "Enter") join(); });
+    $("#btn-copy-code").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#room-code2").textContent); toast("Code copied"); } catch (_) { toast("Copy failed. Select the code."); } });
+    $("#btn-join").addEventListener("click", () => join("play"));
+    $("#btn-watch").addEventListener("click", () => join("watch"));
+    $("#join-code").addEventListener("keydown", (e) => { if (e.key === "Enter") join("play"); });
+    $("#room-view").addEventListener("change", (e) => { if (ctl.mode === "host" && ctl.room && !ctl.S) { ctl.room.view = e.target.value === "full" ? "full" : "public"; broadcastRoom(); } });
+    $("#room-say-form").addEventListener("submit", (e) => { e.preventDefault(); const t = $("#room-say").value.trim(); if (t) act({ type: "say", text: t }); $("#room-say").value = ""; });
     $("#btn-solo").addEventListener("click", solo);
     $("#alert-ok").addEventListener("click", () => { $("#alert").hidden = true; });
     $("#say-form").addEventListener("submit", (e) => { e.preventDefault(); const t = $("#say").value.trim(); if (t) act({ type: "say", text: t }); $("#say").value = ""; });

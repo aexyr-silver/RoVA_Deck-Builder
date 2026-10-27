@@ -119,9 +119,9 @@ A virtual table for two players. It's a **sandbox with helpers**: you move cards
 
 **Play online with someone (two computers):**
 
-1. One player clicks **Create room** and gets a 6-character **room code**. **Copy** puts it on the clipboard. Send the code to the other player.
-2. The other player chooses their own deck, types the code under **Join** and clicks **Join**.
-3. When they've joined, the host sees their name and deck size and clicks **Start game**. This opens the table for both players; nothing is shuffled or drawn until each player does their own setup (see [Before turn 1](#3-before-turn-1-setup-and-ready)).
+1. One player chooses what **spectators see** (public info only, or everything including hands and peeks), clicks **Create room** and gets a 6-character **room code**. **Copy** puts it on the clipboard. Share the code.
+2. Others type the code under **Join** and click **Join** to take an open seat, or **Watch** to join as a spectator (up to 8). Players need a deck chosen; spectators don't.
+3. The lobby turns into the **room**: two seats, the spectator list and a chat. When both seats are filled, the host clicks **Start game**. This opens the table for everyone; nothing is shuffled or drawn until each player does their own setup (see [Before turn 1](#3-before-turn-1-setup-and-ready)).
 
 You can't join your own room: once you've created a room, the Join box in that tab is locked, and joining it from another tab or window of the same browser is refused. To test online play alone, use two different browsers or devices, or use Solo.
 
@@ -129,8 +129,15 @@ The two browsers connect directly to each other. A free public service (PeerJS) 
 
 **Leave:** once you've created a room, joined one or started solo, a **Leave** button appears at the top right. Click it, then click **Leave?** within 3 seconds to confirm. You go back to the lobby; your name and decks are kept.
 
-- If the **guest** leaves, the host gets a pop-up and a log entry. Before the game starts, the room stays open for someone else to join.
-- If the **host** leaves, the room closes and the game ends. The guest gets a pop-up and can press Leave to return to the lobby.
+- If a **seated player** leaves, the game ends for everyone and the room waits with an open seat.
+- If a **spectator** leaves, nothing else changes.
+- If the **host** leaves (or closes or reloads the page), the room closes for everyone.
+
+**Spectators and seats:**
+
+- **Seats only change between games.** In the room, a spectator can **Take seat** on an open seat (playing with the deck chosen on the left), and a seated player can **Spectate** to free their seat. The host can do both too; the room keeps running while the host watches.
+- **During a game**, a seated player can press **Spectate** in the left column (it asks **Ends game?** to confirm). The game ends for everyone (logged as such), and the room waits again so someone else can take the seat. The host also has **End game**, for example after a win.
+- **What spectators see** is set by the host: *public info only* (both hands hidden unless revealed, peeks hidden) or *everything* (both hands and peeks). The host can change it in the room between games. Spectators can't act on the table, but they can use the chat; their messages are marked "spectator".
 
 **Play solo (one computer):**
 

@@ -238,3 +238,20 @@ div.fieldtag { text-align: center; padding: 5px 8px; }
 /* card zoom above menus, the Abyss/peek windows and pop-ups */
 .preview { z-index: 60; }
 .top-actions .leave { grid-column: auto; padding: 7px 12px; }
+
+/* waiting room */
+.room h2 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.room h3 { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 6px; }
+.seats, .specs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.seat { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--panel-2); }
+.seat.open { border-style: dashed; }
+.seat.me { border-color: var(--accent); }
+.seat .sn { color: var(--muted); font-size: 13px; min-width: 52px; }
+.seat .who { flex: 1; font-weight: 600; }
+.seat.open .who { color: var(--muted); font-weight: 400; }
+.specs li { font-size: 14px; }
+#room-host { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-top: 14px; }
+.field.inline { margin-bottom: 8px; }
+.room-chat { max-height: 220px; min-height: 80px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+.chat li.msg.spec .bubble { border-style: dashed; }
+.my-hand .back { width: calc(var(--cw) * .6); height: calc(var(--ch) * .6); border-radius: 3px; flex: none; }
