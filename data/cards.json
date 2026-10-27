@@ -1,5 +1,5 @@
 {
-  "assetVersion": 14,
+  "assetVersion": 15,
   "assetVersionNote": "Raise assetVersion by 1 whenever you replace image files, so browsers load the new pictures.",
   "scale": "1:1 at 300 dpi",
   "card_mm": [
