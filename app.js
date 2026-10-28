@@ -100,6 +100,7 @@
     $("#search").placeholder = state.mode === "summons" ? "Search" : "Search tokens";
     renderChosen();
     renderPool();
+    if (detailId && byId[detailId]) showDetail(byId[detailId]);   // keep the counts in the text panel current
   }
 
   function total(b) { return Object.values(b).reduce((a, n) => a + n, 0); }
@@ -184,7 +185,7 @@
       const tile = el("button", {
         class: `tile${item.kind === "token" ? " token" : ""}${n >= cap(item) ? " maxed" : ""}`,
         title: `${item.name} — click to add, right-click to remove`,
-        onclick: () => add(item.id),
+        onclick: () => { add(item.id); showDetail(item); },
         oncontextmenu: (e) => { e.preventDefault(); if (n) remove(item.id); },
       }, img,
         n ? el("span", { class: "badge", text: String(n) }) : null,
@@ -197,31 +198,75 @@
   }
 
   /* ---------- hover preview (desktop only) ---------- */
-  const preview = $("#preview"), pimg = $("#preview-img");
-  const canHover = window.matchMedia("(hover: hover)").matches;
   // On the light site theme, show the dark card images (and the reverse). Printing always uses the light, ink-saving images.
   const siteLight = () => getComputedStyle(document.documentElement).colorScheme === "light";
   // my proxy images match the theme: dark set on the dark theme, white set on the light theme (printing always uses white)
   const face = (item) => (!siteLight() && item.imageDark) || item.image;
   const insFace = (item) => item.inscription && ((!siteLight() && item.inscriptionDark) || item.inscription);
 
+  /* ---------- preview box + full card text (right column) ---------- */
+  const ROMAN_N = { 0: "N", 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII", 8: "VIII", 9: "IX", 13: "XIII" };
+  const PLACE = {
+    Full: "Any empty arena slot. Strong; effects are rare and restrictive.",
+    Half: "Any empty arena slot. Typical cost and strength.",
+    Quarter: "Quarter zone only (the 4 diamond slots). Can't intercept.",
+    Fragment: "Fragment Recall Altar only (shared; at most 1 Fragment per turn by either player, none on either player's first turn). Counts as 0 emission / 0 capacity, can't attack, and is sacrificed when its effect ends or at the end of the turn.",
+  };
+  let detailId = null;
   function attachPreview(node, item) {
-    if (!canHover) return;
-    // special tokens preview their inscription card; everything else previews its own image
-    const src = insFace(item) || face(item);
-    const wide = Boolean(item.inscription);
-    node.addEventListener("mouseenter", () => {
-      pimg.src = src; pimg.alt = wide ? `${item.name} inscription card` : item.name;
-      preview.classList.toggle("wide", wide); preview.hidden = false;
-    });
-    node.addEventListener("mousemove", (e) => {
-      const w = wide ? 430 : 310, h = wide ? 215 : 440;
-      let x = e.clientX + 18, y = e.clientY - h / 2;
-      if (x + w > innerWidth) x = e.clientX - w - 18;
-      y = Math.max(8, Math.min(y, innerHeight - h - 8));
-      preview.style.left = x + "px"; preview.style.top = y + "px";
-    });
-    node.addEventListener("mouseleave", () => { preview.hidden = true; });
+    node.addEventListener("mouseenter", () => showDetail(item));
+    node.addEventListener("focus", () => showDetail(item));
+  }
+  function showDetail(item) {
+    if (!item) return;
+    detailId = item.id;
+    const img = $("#detail-img");
+    const src = item.inscriptionOfficial || item.official || insFace(item) || face(item);
+    img.src = src; img.alt = item.inscription ? `${item.name} inscription card` : item.name;
+    $("#detail").classList.toggle("wide", Boolean(item.inscription));
+    $("#detail").classList.add("has");
+    const box = $("#detail-text"); box.replaceChildren();
+    const n = (item.kind === "card" ? state.summons : state.tokens)[item.id] || 0;
+    const fact = (k, v) => [el("dt", { text: k }), el("dd", { text: v })];
+    const block = (k, v, cls) => el("div", { class: `dblock ${cls || ""}` }, el("h4", { text: k }), el("p", { text: v }));
+    if (item.kind === "card") {
+      const frag = item.cardType === "Fragment";
+      box.append(el("h3", { text: item.name }), el("p", { class: "dsub", text: `${item.cardType} · ${item.arcanaType}${item.setNo ? ` · No. ${item.setNo} of ${DATA.setSize || DATA.cards.length}` : ""}` }));
+      box.append(el("dl", { class: "facts" },
+        ...fact("Title", item.title || "None (tutorial card)"),
+        ...fact("Cost", item.cost ? `${ROMAN_N[item.cost]} (${item.cost} unit${item.cost > 1 ? "s" : ""})` : "N (no cost)"),
+        ...fact("Arcana Level", `${item.level} (rarity: 5 most common, 1 rarest)`),
+        ...fact("Emission", frag ? "— (Fragment: counts as 0)" : String(item.emission)),
+        ...fact("Capacity", frag ? "— (Fragment: counts as 0)" : String(item.capacity)),
+        ...fact("Origin", frag ? "Badge: Fragments" : "None (tutorial card)"),
+        ...fact("In your deck", `${n} of ${MAX_COPIES} max`)));
+      box.append(block("Effect", item.effect && item.effect !== "None" ? item.effect : "No effect."));
+      box.append(block("+ Affinity · Radiant Arcana Field only", item.affinity || "None.", "aff"));
+      box.append(block("− Restriction · Radiant Arcana Field only", item.restriction || "None.", "res"));
+      box.append(block("Placement", PLACE[item.cardType] || ""));
+      box.append(block("Paying the cost", item.cost
+        ? "Stash tokens (from the top) or card sacrifices from hand or field; each sacrifice is 1 unit and makes the opponent generate a token."
+        : "Free: play it in the summon step like any other card (it counts toward the 0-cost minimum)."));
+      box.append(el("p", { class: "dfoot", text: [item.credit, DATA.copyright].filter(Boolean).join(" · ") }));
+    } else if (item.special) {
+      box.append(el("h3", { text: item.name }), el("p", { class: "dsub", text: `Special Void Token (rune) · ${item.arcanaType}` }));
+      box.append(el("dl", { class: "facts" },
+        ...fact("Value", `${ROMAN_N[item.value] || item.value} (${item.value} charge to claim)`),
+        ...fact("Arcana Type", item.arcanaType),
+        ...fact("Trigger", item.trigger || "—"),
+        ...fact("In your stack", `${n} of ${MAX_COPIES} max`)));
+      box.append(block("Effect", item.effect || "—"));
+      box.append(block("Inscription card", "One inscription card per kind of special token in your stack, shown to both players. The face shows the value, name, trigger and Arcana Type emblem."));
+      box.append(block("How tokens move", "Generated onto your Void Altar when the opponent sacrifices; charged by summons; a fully charged token goes to its owner's stash (an enemy token charged to full is sacrificed to its owner's Abyss); stash tokens pay for summons from the top."));
+    } else {
+      box.append(el("h3", { text: `Void Token · Value ${ROMAN_N[item.value] || item.value}` }), el("p", { class: "dsub", text: "Normal Void Token" }));
+      box.append(el("dl", { class: "facts" },
+        ...fact("Value", `${ROMAN_N[item.value] || item.value} (${item.value} charge to claim)`),
+        ...fact("Arcana Type", "None"),
+        ...fact("Effect", "None"),
+        ...fact("In your stack", `${n} (no copy limit)`)));
+      box.append(block("How tokens move", "Generated onto your Void Altar when the opponent sacrifices; charged by summons; a fully charged token goes to its owner's stash (an enemy token charged to full is sacrificed to its owner's Abyss); stash tokens pay for summons from the top."));
+    }
   }
 
   /* ---------- clear (two-step, no browser dialog) ---------- */

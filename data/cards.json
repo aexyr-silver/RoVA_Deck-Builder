@@ -29,7 +29,9 @@
       "image": "cards/blaze-spark.png",
       "title": "",
       "imageDark": "cards-dark/blaze-spark.png",
-      "official": "cards-official/blaze-spark.png"
+      "official": "cards-official/blaze-spark.png",
+      "setNo": 6,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "blaze-striker",
@@ -46,7 +48,9 @@
       "image": "cards/blaze-striker.png",
       "title": "",
       "imageDark": "cards-dark/blaze-striker.png",
-      "official": "cards-official/blaze-striker.png"
+      "official": "cards-official/blaze-striker.png",
+      "setNo": 2,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "blaze-raider",
@@ -63,7 +67,9 @@
       "image": "cards/blaze-raider.png",
       "title": "",
       "imageDark": "cards-dark/blaze-raider.png",
-      "official": "cards-official/blaze-raider.png"
+      "official": "cards-official/blaze-raider.png",
+      "setNo": 4,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "blaze-charger",
@@ -80,7 +86,9 @@
       "image": "cards/blaze-charger.png",
       "title": "",
       "imageDark": "cards-dark/blaze-charger.png",
-      "official": "cards-official/blaze-charger.png"
+      "official": "cards-official/blaze-charger.png",
+      "setNo": 3,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "blaze-duelist",
@@ -97,7 +105,9 @@
       "image": "cards/blaze-duelist.png",
       "title": "",
       "imageDark": "cards-dark/blaze-duelist.png",
-      "official": "cards-official/blaze-duelist.png"
+      "official": "cards-official/blaze-duelist.png",
+      "setNo": 5,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "blaze-titan",
@@ -114,7 +124,9 @@
       "image": "cards/blaze-titan.png",
       "title": "",
       "imageDark": "cards-dark/blaze-titan.png",
-      "official": "cards-official/blaze-titan.png"
+      "official": "cards-official/blaze-titan.png",
+      "setNo": 1,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "blaze-flare",
@@ -131,7 +143,9 @@
       "image": "cards/blaze-flare.png",
       "title": "",
       "imageDark": "cards-dark/blaze-flare.png",
-      "official": "cards-official/blaze-flare.png"
+      "official": "cards-official/blaze-flare.png",
+      "setNo": 7,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "frost-ward",
@@ -148,7 +162,9 @@
       "image": "cards/frost-ward.png",
       "title": "",
       "imageDark": "cards-dark/frost-ward.png",
-      "official": "cards-official/frost-ward.png"
+      "official": "cards-official/frost-ward.png",
+      "setNo": 13,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "frost-guard",
@@ -165,7 +181,9 @@
       "image": "cards/frost-guard.png",
       "title": "",
       "imageDark": "cards-dark/frost-guard.png",
-      "official": "cards-official/frost-guard.png"
+      "official": "cards-official/frost-guard.png",
+      "setNo": 9,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "frost-sentinel",
@@ -182,7 +200,9 @@
       "image": "cards/frost-sentinel.png",
       "title": "",
       "imageDark": "cards-dark/frost-sentinel.png",
-      "official": "cards-official/frost-sentinel.png"
+      "official": "cards-official/frost-sentinel.png",
+      "setNo": 11,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "frost-keeper",
@@ -199,7 +219,9 @@
       "image": "cards/frost-keeper.png",
       "title": "",
       "imageDark": "cards-dark/frost-keeper.png",
-      "official": "cards-official/frost-keeper.png"
+      "official": "cards-official/frost-keeper.png",
+      "setNo": 10,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "frost-bulwark",
@@ -216,7 +238,9 @@
       "image": "cards/frost-bulwark.png",
       "title": "",
       "imageDark": "cards-dark/frost-bulwark.png",
-      "official": "cards-official/frost-bulwark.png"
+      "official": "cards-official/frost-bulwark.png",
+      "setNo": 12,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "frost-colossus",
@@ -233,7 +257,9 @@
       "image": "cards/frost-colossus.png",
       "title": "",
       "imageDark": "cards-dark/frost-colossus.png",
-      "official": "cards-official/frost-colossus.png"
+      "official": "cards-official/frost-colossus.png",
+      "setNo": 8,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "frost-thaw",
@@ -250,7 +276,9 @@
       "image": "cards/frost-thaw.png",
       "title": "",
       "imageDark": "cards-dark/frost-thaw.png",
-      "official": "cards-official/frost-thaw.png"
+      "official": "cards-official/frost-thaw.png",
+      "setNo": 14,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "seal-fragment",
@@ -267,7 +295,9 @@
       "image": "cards/seal-fragment.png",
       "title": "",
       "imageDark": "cards-dark/seal-fragment.png",
-      "official": "cards-official/seal-fragment.png"
+      "official": "cards-official/seal-fragment.png",
+      "setNo": 18,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "seal-warden",
@@ -284,7 +314,9 @@
       "image": "cards/seal-warden.png",
       "title": "",
       "imageDark": "cards-dark/seal-warden.png",
-      "official": "cards-official/seal-warden.png"
+      "official": "cards-official/seal-warden.png",
+      "setNo": 16,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "seal-lock",
@@ -301,7 +333,9 @@
       "image": "cards/seal-lock.png",
       "title": "",
       "imageDark": "cards-dark/seal-lock.png",
-      "official": "cards-official/seal-lock.png"
+      "official": "cards-official/seal-lock.png",
+      "setNo": 17,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "seal-bastion",
@@ -318,7 +352,9 @@
       "image": "cards/seal-bastion.png",
       "title": "",
       "imageDark": "cards-dark/seal-bastion.png",
-      "official": "cards-official/seal-bastion.png"
+      "official": "cards-official/seal-bastion.png",
+      "setNo": 15,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "static-pulse",
@@ -335,7 +371,9 @@
       "image": "cards/static-pulse.png",
       "title": "",
       "imageDark": "cards-dark/static-pulse.png",
-      "official": "cards-official/static-pulse.png"
+      "official": "cards-official/static-pulse.png",
+      "setNo": 21,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "static-coil",
@@ -352,7 +390,9 @@
       "image": "cards/static-coil.png",
       "title": "",
       "imageDark": "cards-dark/static-coil.png",
-      "official": "cards-official/static-coil.png"
+      "official": "cards-official/static-coil.png",
+      "setNo": 20,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "static-storm",
@@ -369,7 +409,9 @@
       "image": "cards/static-storm.png",
       "title": "",
       "imageDark": "cards-dark/static-storm.png",
-      "official": "cards-official/static-storm.png"
+      "official": "cards-official/static-storm.png",
+      "setNo": 19,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "static-surge",
@@ -386,7 +428,9 @@
       "image": "cards/static-surge.png",
       "title": "",
       "imageDark": "cards-dark/static-surge.png",
-      "official": "cards-official/static-surge.png"
+      "official": "cards-official/static-surge.png",
+      "setNo": 22,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "flow-runner",
@@ -403,7 +447,9 @@
       "image": "cards/flow-runner.png",
       "title": "",
       "imageDark": "cards-dark/flow-runner.png",
-      "official": "cards-official/flow-runner.png"
+      "official": "cards-official/flow-runner.png",
+      "setNo": 23,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "flow-drifter",
@@ -420,7 +466,9 @@
       "image": "cards/flow-drifter.png",
       "title": "",
       "imageDark": "cards-dark/flow-drifter.png",
-      "official": "cards-official/flow-drifter.png"
+      "official": "cards-official/flow-drifter.png",
+      "setNo": 25,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "flow-tide",
@@ -437,7 +485,9 @@
       "image": "cards/flow-tide.png",
       "title": "",
       "imageDark": "cards-dark/flow-tide.png",
-      "official": "cards-official/flow-tide.png"
+      "official": "cards-official/flow-tide.png",
+      "setNo": 24,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "flow-shift",
@@ -454,7 +504,9 @@
       "image": "cards/flow-shift.png",
       "title": "",
       "imageDark": "cards-dark/flow-shift.png",
-      "official": "cards-official/flow-shift.png"
+      "official": "cards-official/flow-shift.png",
+      "setNo": 26,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "hidden-snare",
@@ -471,7 +523,9 @@
       "image": "cards/hidden-snare.png",
       "title": "",
       "imageDark": "cards-dark/hidden-snare.png",
-      "official": "cards-official/hidden-snare.png"
+      "official": "cards-official/hidden-snare.png",
+      "setNo": 29,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "hidden-tripwire",
@@ -488,7 +542,9 @@
       "image": "cards/hidden-tripwire.png",
       "title": "",
       "imageDark": "cards-dark/hidden-tripwire.png",
-      "official": "cards-official/hidden-tripwire.png"
+      "official": "cards-official/hidden-tripwire.png",
+      "setNo": 27,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "hidden-lure",
@@ -505,7 +561,9 @@
       "image": "cards/hidden-lure.png",
       "title": "",
       "imageDark": "cards-dark/hidden-lure.png",
-      "official": "cards-official/hidden-lure.png"
+      "official": "cards-official/hidden-lure.png",
+      "setNo": 28,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "hidden-ambush",
@@ -522,7 +580,9 @@
       "image": "cards/hidden-ambush.png",
       "title": "",
       "imageDark": "cards-dark/hidden-ambush.png",
-      "official": "cards-official/hidden-ambush.png"
+      "official": "cards-official/hidden-ambush.png",
+      "setNo": 30,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "refract-lens",
@@ -539,7 +599,9 @@
       "image": "cards/refract-lens.png",
       "title": "",
       "imageDark": "cards-dark/refract-lens.png",
-      "official": "cards-official/refract-lens.png"
+      "official": "cards-official/refract-lens.png",
+      "setNo": 33,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "refract-prism",
@@ -556,7 +618,9 @@
       "image": "cards/refract-prism.png",
       "title": "",
       "imageDark": "cards-dark/refract-prism.png",
-      "official": "cards-official/refract-prism.png"
+      "official": "cards-official/refract-prism.png",
+      "setNo": 32,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "refract-mirror",
@@ -573,7 +637,9 @@
       "image": "cards/refract-mirror.png",
       "title": "",
       "imageDark": "cards-dark/refract-mirror.png",
-      "official": "cards-official/refract-mirror.png"
+      "official": "cards-official/refract-mirror.png",
+      "setNo": 31,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "refract-glimpse",
@@ -590,7 +656,9 @@
       "image": "cards/refract-glimpse.png",
       "title": "",
       "imageDark": "cards-dark/refract-glimpse.png",
-      "official": "cards-official/refract-glimpse.png"
+      "official": "cards-official/refract-glimpse.png",
+      "setNo": 34,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "chaos-rift",
@@ -607,7 +675,9 @@
       "image": "cards/chaos-rift.png",
       "title": "",
       "imageDark": "cards-dark/chaos-rift.png",
-      "official": "cards-official/chaos-rift.png"
+      "official": "cards-official/chaos-rift.png",
+      "setNo": 36,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "chaos-recall",
@@ -624,7 +694,9 @@
       "image": "cards/chaos-recall.png",
       "title": "",
       "imageDark": "cards-dark/chaos-recall.png",
-      "official": "cards-official/chaos-recall.png"
+      "official": "cards-official/chaos-recall.png",
+      "setNo": 35,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "chaos-breaker",
@@ -641,7 +713,9 @@
       "image": "cards/chaos-breaker.png",
       "title": "",
       "imageDark": "cards-dark/chaos-breaker.png",
-      "official": "cards-official/chaos-breaker.png"
+      "official": "cards-official/chaos-breaker.png",
+      "setNo": 37,
+      "credit": "Illust. by TBD. Card by TBD."
     },
     {
       "id": "chaos-echo",
@@ -658,7 +732,9 @@
       "image": "cards/chaos-echo.png",
       "title": "",
       "imageDark": "cards-dark/chaos-echo.png",
-      "official": "cards-official/chaos-echo.png"
+      "official": "cards-official/chaos-echo.png",
+      "setNo": 38,
+      "credit": "Illust. by TBD. Card by TBD."
     }
   ],
   "tokens": [
@@ -861,5 +937,7 @@
     "card": "backs-dark/card-back.png",
     "token": "backs-dark/token-back.png"
   },
-  "token_mm_point_to_point": 63
+  "token_mm_point_to_point": 63,
+  "setSize": 38,
+  "copyright": "Project Remnants of the Void Arcana © 2026 Noire Astral. All rights reserved."
 }

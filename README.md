@@ -41,7 +41,10 @@ Use the **Summons / Tokens** switch in the middle of the top bar to change mode.
 - **Search** looks through names and card text (effect, affinity, restriction).
 - The filters narrow the list by **Arcana Type**, **card type** (Full, Half, Quarter, Fragment) and **cost**. In Tokens mode, only the type filter is shown.
 - The card grid shows the **official card layouts**.
-- **Hover** over any card to see a larger, text-first proxy that's easier to read. For special tokens, hovering shows the token's inscription card. The proxy follows the site theme: dark on the **Dark** theme, white on the **Light** theme.
+- **Preview and card text (right column):** hover over (or click) any card or token, in the grid or in your deck list, to show it large in the right column. It stays until you hover another. Special tokens show their inscription card. Under the picture is the **full text** of the card, with everything printed on it and a little more:
+  - Summons: name, card type, Arcana Type and set number (No. X of 38), title, cost (as on the card, plus the number of units), Arcana Level, emission and capacity (Fragments: "—", counting as 0), Origin or badge, effect, affinity (+) and restriction (−) with "Radiant only", where it can be placed, how its cost is paid, how many are in your deck, and the credit and copyright lines.
+  - Special tokens: value, Arcana Type, trigger, effect, copies in your stack, plus notes on inscription cards and how tokens move. Normal Void Tokens: value and copies (no limit).
+  - On screens narrower than 1200 px the panel moves under your deck list; on phones it comes after the grid.
 - Printing always uses the white, ink-saving proxies.
 
 ### The deck list

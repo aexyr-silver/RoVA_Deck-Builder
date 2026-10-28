@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RoVA Deck Builder</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 <header class="topbar three">
@@ -58,12 +58,15 @@
     </div>
     <div id="pool-grid" class="grid"></div>
   </section>
+
+  <!-- RIGHT: preview and full card text -->
+  <aside class="panel detail" id="detail" aria-live="polite">
+    <div class="detail-img"><img id="detail-img" alt=""></div>
+    <div id="detail-text" class="detail-text"><p class="empty">Hover a card or token to see it here, with its full text.</p></div>
+  </aside>
 </main>
 
-<!-- Card preview -->
-<div id="preview" class="preview" hidden>
-  <img id="preview-img" alt="">
-</div>
+
 
 <!-- Export dialog -->
 <dialog id="export-dialog">
@@ -100,6 +103,6 @@
 <div id="print-list" class="print-only"></div>
 <div id="print-proxies" class="print-only"></div>
 
-<script src="app.js?v=15"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>

@@ -892,6 +892,7 @@
       for (const p of [me, opp(me)]) {
         const n = V.players[p].pendingGen;
         if (!n) continue;
+        if (p !== me && ctl.mode !== "solo") continue;     // only the player who generates is reminded (spectators see it above)
         const mine = p === me || ctl.mode === "solo";
         parts.push(el("span", { text: `${V.players[p].name}: generate ${n}` }));
         parts.push(el("button", { text: "Pick slot", onclick: () => startPick({ kind: "altar", side: p, label: `Pick a slot on ${V.players[p].name}'s altar`,
