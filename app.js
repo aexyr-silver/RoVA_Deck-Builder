@@ -213,8 +213,17 @@
     Fragment: "Fragment Recall Altar only (shared; at most 1 Fragment per turn by either player, none on either player's first turn). Counts as 0 emission / 0 capacity, can't attack, and is sacrificed when its effect ends or at the end of the turn.",
   };
   let detailId = null;
+  // The preview follows the pointer only after it rests on a card for a moment, and only on real mouse
+  // movement. Sweeping across other cards on the way to the preview, or the lists re-drawing after you
+  // add or remove a copy, no longer swaps it.
+  let hoverTimer = null, hoverId = null;
   function attachPreview(node, item) {
-    node.addEventListener("mouseenter", () => showDetail(item));
+    node.addEventListener("mousemove", () => {
+      if (item.id === detailId || item.id === hoverId) return;
+      clearTimeout(hoverTimer); hoverId = item.id;
+      hoverTimer = setTimeout(() => { hoverId = null; showDetail(item); }, 280);
+    });
+    node.addEventListener("mouseleave", () => { if (hoverId === item.id) { clearTimeout(hoverTimer); hoverId = null; } });
     node.addEventListener("focus", () => showDetail(item));
   }
   function showDetail(item) {
