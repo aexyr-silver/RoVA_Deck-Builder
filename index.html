@@ -3,9 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07070b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>RoVA Deck Builder</title>
 <script>try{var t=localStorage.getItem("rova-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}</script>
-<link rel="stylesheet" href="style.css?v=17">
+<link rel="stylesheet" href="style.css?v=18">
 </head>
 <body class="builder">
 <header class="topbar three">
@@ -22,6 +26,7 @@
   </div>
   <div class="top-actions">
     <a class="btn-link" href="sim.html">Playtest</a>
+    <button id="btn-full" class="ghost" aria-pressed="false" aria-label="Full screen" title="Full screen" hidden><svg class="fs-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="fs-txt">Full screen</span></button>
     <button id="btn-theme" class="ghost" aria-label="Theme: auto" title="Theme: auto">Auto</button>
   </div>
 </header>
@@ -107,5 +112,6 @@
 <div id="print-proxies" class="print-only"></div>
 
 <script src="app.js?v=17"></script>
+<script src="fullscreen.js?v=1"></script>
 </body>
 </html>

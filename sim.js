@@ -773,8 +773,9 @@
     const c = $("#centre"); if (!c) return;
     c.classList.remove("compact");
     if (c.scrollWidth > c.clientWidth + 1 || c.scrollHeight > c.clientHeight + 1) {
+      const h0 = c.offsetHeight;
       c.classList.add("compact");
-      if (innerWidth > 1000) size(Math.max(0, c.offsetHeight - (ch * .8 + 26)));
+      if (innerWidth > 1000) size(Math.max(0, c.offsetHeight - h0));
     }
   }
 

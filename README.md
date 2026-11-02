@@ -6,7 +6,11 @@ The tutorial cards are placeholders for testing the rules and are not for releas
 - **Deck builder:** `index.html`, the main page of the site
 - **Playtest table:** `sim.html`, reached from the **Playtest** link in the deck builder
 
-Both pages work in any modern browser on a computer. On a screen 1000 px wide or more, the playtest table fits the window without scrolling; if the window is too short, each column (left, board, right) scrolls on its own. On narrower screens (phones, small tablets) the parts stack and the page scrolls. In the deck builder, text, spacing and card thumbnails shrink a little on screens narrower than 1366 px (down to about 12% smaller on phones), and follow your browser's text-size setting.
+Both pages work in any modern browser on a computer. On a screen 1000 px wide or more, the playtest table fits the window without scrolling; if the window is too short, each column (left, board, right) scrolls on its own. On narrower screens (phones, small tablets) the parts stack and the page scrolls. On both pages, text and spacing (and the deck builder's card thumbnails) shrink a little on screens narrower than 1366 px (down to about 12% smaller on phones), and follow your browser's text-size setting.
+
+**Full screen:** the **Full screen** button in the header (an icon on phones) hides the browser and system bars; press it again or **Esc** to leave. Moving between the deck builder and the playtest leaves full screen. Not every browser allows it (iPhone Safari doesn't), so the button only shows where it works.
+
+**Install as an app:** in Chrome, open the ⋮ menu and choose **Install app** (on computers) or **Add to home screen → Install** (on phones and tablets). The app is called **Playtest Kit** (**RoVA** under its icon), opens the deck builder in its own window without browser bars, and always loads the latest version, so it needs an internet connection.
 
 ---
 
