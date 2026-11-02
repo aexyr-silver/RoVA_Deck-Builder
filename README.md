@@ -6,7 +6,7 @@ The tutorial cards are placeholders for testing the rules and are not for releas
 - **Deck builder:** `index.html`, the main page of the site
 - **Playtest table:** `sim.html`, reached from the **Playtest** link in the deck builder
 
-Both pages work in any modern browser on a computer. On a screen 1000 px wide or more, the playtest table fits the window without scrolling. On narrower screens (phones, small tablets) the parts stack and the page scrolls. In the deck builder, text, spacing and card thumbnails shrink a little on screens narrower than 1366 px (down to about 12% smaller on phones), and follow your browser's text-size setting.
+Both pages work in any modern browser on a computer. On a screen 1000 px wide or more, the playtest table fits the window without scrolling; if the window is too short, each column (left, board, right) scrolls on its own. On narrower screens (phones, small tablets) the parts stack and the page scrolls. In the deck builder, text, spacing and card thumbnails shrink a little on screens narrower than 1366 px (down to about 12% smaller on phones), and follow your browser's text-size setting.
 
 ---
 
@@ -175,7 +175,7 @@ The screen has three columns, split about 25 / 45 / 30:
 - **Middle:** the board. Card sizes adjust to the window so the whole board fits.
 - **Right:** the match log and the chat, with **Spectate** and (for the host) **End game** below the chat in online games.
 
-On the board, your side is at the bottom and the other player's side is at the top, mirrored the way they'd be across a real table. The layout follows the playmat: the shared **Fragment Recall Altar** (the dashed circle) sits in a middle band between the two arenas, with your Void Altar to its left and the opponent's to its right. The Quarter zone is outlined as a diamond. Each side follows the rules' field layout:
+On the board, your side is at the bottom and the other player's side is at the top, mirrored the way they'd be across a real table. The layout follows the playmat: the shared **Fragment Recall Altar** (the dashed circle) sits in a middle band between the two arenas, with your Void Altar to its left and the opponent's to its right. When the band doesn't fit the board (smaller screens), its buttons (Field, Coin flip, Stand all, Win, Undo) move to a row just under it. The Quarter zone is outlined as a diamond. Each side follows the rules' field layout:
 
 | Area | Where on your side | What's shown |
 | --- | --- | --- |

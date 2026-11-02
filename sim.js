@@ -761,9 +761,21 @@
   function fitBoard() {
     const b = $(".board-wrap"); if (!b || $("#game").hidden) return;
     const H = b.clientHeight, W = b.clientWidth;
-    let ch = innerWidth <= 1000 ? (W - 50) / 5.05 : Math.min((H - 128) / 6.6, (W - 50) / 5.05);
-    ch = Math.max(40, Math.min(132, Math.floor(ch)));
-    document.documentElement.style.setProperty("--ch", ch + "px");
+    const size = (extra) => {
+      let ch = innerWidth <= 1000 ? (W - 50) / 5.05 : Math.min((H - 128 - extra) / 6.6, (W - 50) / 5.05);
+      ch = Math.max(40, Math.min(132, Math.floor(ch)));
+      document.documentElement.style.setProperty("--ch", ch + "px");
+      return ch;
+    };
+    const ch = size(0);
+    // Middle band doesn't fit its space (too wide for the board, or too tall): move its tool buttons
+    // to a row under it, then shrink the cards just enough for that extra row.
+    const c = $("#centre"); if (!c) return;
+    c.classList.remove("compact");
+    if (c.scrollWidth > c.clientWidth + 1 || c.scrollHeight > c.clientHeight + 1) {
+      c.classList.add("compact");
+      if (innerWidth > 1000) size(Math.max(0, c.offsetHeight - (ch * .8 + 26)));
+    }
   }
 
   /* =================================================================== */
@@ -849,6 +861,7 @@
     renderPeek(V, me);
     renderAlert(V);
     renderGameOver(V);
+    fitBoard();                                // tool buttons change during the game, so recheck the band
   }
 
   let lastOver = 0;
