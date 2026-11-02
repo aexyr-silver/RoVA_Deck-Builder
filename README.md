@@ -6,7 +6,7 @@ The tutorial cards are placeholders for testing the rules and are not for releas
 - **Deck builder:** `index.html`, the main page of the site
 - **Playtest table:** `sim.html`, reached from the **Playtest** link in the deck builder
 
-Both pages work in any modern browser on a computer. On a screen 1000 px wide or more, the playtest table fits the window without scrolling. On narrower screens (phones, small tablets) the parts stack and the page scrolls.
+Both pages work in any modern browser on a computer. On a screen 1000 px wide or more, the playtest table fits the window without scrolling. On narrower screens (phones, small tablets) the parts stack and the page scrolls. In the deck builder, text, spacing and card thumbnails shrink a little on screens narrower than 1366 px (down to about 12% smaller on phones), and follow your browser's text-size setting.
 
 ---
 
