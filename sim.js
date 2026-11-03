@@ -12,6 +12,9 @@
 
   const SLOTS = ["1F", "1B", "2M", "3F", "3B", "4M", "5F", "5B"];
   const QUARTER_SLOTS = ["2M", "3F", "3B", "4M"];
+  // Quarter cards stay in the Quarter zone; they leave it only to intercept: into an empty
+  // outer front slot (1F / 5F) with a summon behind it in the back row (Mysten, 3 Nov 2026).
+  const quarterCanMoveTo = (arena, s) => QUARTER_SLOTS.includes(s) || ((s === "1F" || s === "5F") && !!arena[s[0] + "B"]);
   const SLOT_LABEL = { "1F": "Front", "1B": "Back", "2M": "Corner", "3F": "Front · Q", "3B": "Back · Q", "4M": "Corner", "5F": "Front", "5B": "Back" };
   const ARCANA_ORDER = ["Blaze", "Frost", "Seal", "Static", "Flow", "Hidden", "Refract", "Chaos"];
   const WIN_TARGET = 6;
@@ -1202,8 +1205,9 @@
       [["Emission +1", () => act({ type: "mod", iid, stat: "em", d: 1 })], ["−1", () => act({ type: "mod", iid, stat: "em", d: -1 })]],
       [["Capacity +1", () => act({ type: "mod", iid, stat: "cp", d: 1 })], ["−1", () => act({ type: "mod", iid, stat: "cp", d: -1 })]],
       o.em || o.cp ? ["Clear effects", () => act({ type: "mod", iid, clear: true })] : null,
-      ["Move…", () => startPick({ kind: "slot", side: p, label: `Pick a slot for ${ref.name}`,
-        filter: ref.cardType === "Quarter" ? (s) => QUARTER_SLOTS.includes(s) : null, onPick: (slot) => act({ type: "move", iid, slot }) })],
+      ["Move…", () => startPick({ kind: "slot", side: p,
+        label: ref.cardType === "Quarter" ? `Pick a slot for ${ref.name} (outside the Quarter zone only to intercept)` : `Pick a slot for ${ref.name}`,
+        filter: ref.cardType === "Quarter" ? (s) => quarterCanMoveTo(V.players[p].arena, s) : null, onPick: (slot) => act({ type: "move", iid, slot }) })],
       ["Sacrifice", () => act({ type: "sacrifice", iid })],
       ["To hand", () => act({ type: "toHand", iid })],
       [["Deck top", () => act({ type: "toDeck", iid, where: "top" })], ["Deck bottom", () => act({ type: "toDeck", iid, where: "bottom" })]],

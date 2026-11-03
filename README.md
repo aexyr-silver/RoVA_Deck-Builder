@@ -8,7 +8,7 @@ The tutorial cards are placeholders for testing the rules and are not for releas
 
 Both pages work in any modern browser on a computer. On a screen 1000 px wide or more, the playtest table fits the window without scrolling; if the window is too short, each column (left, board, right) scrolls on its own. On narrower screens (phones, small tablets) the parts stack and the page scrolls. On both pages, text and spacing (and the deck builder's card thumbnails) shrink a little on screens narrower than 1366 px (down to about 12% smaller on phones), and follow your browser's text-size setting.
 
-**Full screen:** the **Full screen** button in the header (an icon on phones) hides the browser and system bars; press it again or **Esc** to leave. Moving between the deck builder and the playtest leaves full screen. Not every browser allows it (iPhone Safari doesn't), so the button only shows where it works.
+**Full screen:** the full screen button in the header (the icon with four corners) hides the browser and system bars; press it again or **Esc** to leave. Moving between the deck builder and the playtest leaves full screen. Not every browser allows it (iPhone Safari doesn't), so the button only shows where it works.
 
 **Install as an app:** in Chrome, open the ⋮ menu and choose **Install app** (on computers) or **Add to home screen → Install** (on phones and tablets). The app is called **Playtest Kit** (**RoVA** under its icon), opens the deck builder in its own window without browser bars, and always loads the latest version, so it needs an internet connection.
 
@@ -208,7 +208,7 @@ Click a card, token or pile to see what you can do with it.
 | --- | --- |
 | **A card in your hand** | Summon… (summon phase only; Quarters can only go in Quarter-zone slots), or To Recall Altar for a Fragment (any phase) · Sacrifice · Deck top or bottom · Reveal / Hide hand |
 | **Your hand's name button** (e.g. "Aexyr · 5 ▾") | Reveal / Hide hand · Draw 1 or 2 |
-| **A summon in an arena** | Attack/Charge… (your standing summons) · Rest / Stand · Emission +1 / −1 · Capacity +1 / −1 · Clear effects · Move… · Sacrifice · To hand · Deck top or bottom |
+| **A summon in an arena** | Attack/Charge… (your standing summons) · Rest / Stand · Emission +1 / −1 · Capacity +1 / −1 · Clear effects · Move… (also how you intercept: move the interceptor in front of the attacked summon. A Quarter card can leave the Quarter zone only this way, to Front 1 or Front 5 with a summon behind it) · Sacrifice · To hand · Deck top or bottom |
 | **The Fragment on the altar** | Sacrifice (if it's attacked or its effect ends) · To hand |
 | **A token on a Void Altar** | Charge +1, +2, +3, +5, +7, −1, Reset · Claim (into its owner's stash) · Move… · Sacrifice. A fully charged **enemy** token goes to its owner's Abyss on its own (see below) |
 | **A token stack** | Generate… (pick a slot) |

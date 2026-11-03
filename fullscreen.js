@@ -11,7 +11,7 @@
   const sync = () => {
     const f = isFull();
     const label = f ? "Exit full screen" : "Full screen";
-    btn.querySelector(".fs-txt").textContent = label;   // on phones only the icon shows
+    btn.querySelector(".fs-txt").textContent = label;   // hidden; kept for screen readers that read text
     btn.setAttribute("aria-label", label);
     btn.title = label;
     btn.setAttribute("aria-pressed", String(f));
